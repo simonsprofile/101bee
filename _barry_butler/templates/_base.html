@@ -42,24 +42,24 @@
       <div class="row">
 
         <!-- Nav Left -->
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <nav class="sidebar col-md-3 col-lg-2 d-none d-md-block bg-light">
           <div class="sidebar-sticky">
             <ul class="nav flex-column">
               <li class="nav-item">
                 <a class="nav-link{% block dashboard_active%}{% endblock dashboard_active %}" href="{% url 'dashboard' %}">
-                  <span class="material-symbols-outlined md-light md-18 pe-1 align-bottom">dashboard</span>
+                  <span class="material-symbols-outlined md-light md-24 pe-1 align-bottom">dashboard</span>
                   Dashboard {% block dashboard_active_sr_only %}{% endblock dashboard_active_sr_only %}
                 </a>
               </li>
               <li class="nav-item">
                 <a class="nav-link{% block lights_active%}{% endblock lights_active %}" href="{% url 'lights' %}">
-                  <span class="material-symbols-outlined md-light md-18 pe-1 align-bottom">lightbulb</span>
+                  <span class="material-symbols-outlined md-light md-24 pe-1 align-bottom">lightbulb</span>
                   Lights {% block lights_active_sr_only %}{% endblock lights_active_sr_only %}
                 </a>
               </li>
               <li class="nav-item">
                 <a class="nav-link{% block garage_active%}{% endblock garage_active %}" href="{% url 'garage' %}">
-                  <span class="material-symbols-outlined md-light md-18 pe-1 align-bottom">garage_home</span>
+                  <span class="material-symbols-outlined md-light md-24 pe-1 align-bottom">garage_home</span>
                   Garage {% block garage_active_sr_only %}{% endblock garage_active_sr_only %}
                 </a>
               </li>
@@ -68,7 +68,10 @@
         </nav>
 
         <!-- Content -->
-        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <main role="main" class="col-md-9 col-lg-10 ml-sm-auto px-4">
+          {% for message in messages %}
+            <div class="alert {{ message.tags }} mt-3 mb-0">{{ message }}</div>
+          {% endfor %}
           {% block content %}{% endblock content %}
         </main>
       </div>
