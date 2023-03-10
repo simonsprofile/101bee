@@ -9,48 +9,59 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Lights</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
-          <div class="btn-group mr-2">
-            <button class="btn btn-sm btn-outline-secondary">Share</button>
-            <button class="btn btn-sm btn-outline-secondary">Export</button>
-          </div>
-          <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
-            <span data-feather="calendar"></span>
-            This week
-          </button>
+            {% if authorised %}
+                <a class="btn btn-sm btn-outline-danger" href="{% url 'lights_disconnect' %}">
+                    <span class="material-symbols-outlined md-light md-18 pe-05 pt-05 align-top">link_off</span>
+                    <span class="align-top">Disconnect your Hue Bridge</span>
+                </a>
+            {% endif %}
         </div>
     </div>
-    <div>
-      <p>This is the dashboard. The below table tells us nothing.</p>
-    </div>
-
-    <h2>Table of Nought</h2>
-    <div class="table-responsive">
-        <table class="table table-striped table-sm">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Header</th>
-              <th>Header</th>
-              <th>Header</th>
-              <th>Header</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1,001</td>
-              <td>Lorem</td>
-              <td>ipsum</td>
-              <td>dolor</td>
-              <td>sit</td>
-            </tr>
-            <tr>
-              <td>1,002</td>
-              <td>amet</td>
-              <td>consectetur</td>
-              <td>adipiscing</td>
-              <td>elit</td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="row">
+        <div class=" ol-12 col-lg-8 ms-0">
+            {% if not authorised %}
+                <p>Your Hue Bridge is not currently linked to Barry Butler. Please follow these instructions to connect to your Bridge:</p>
+                <p class="muted small">N.B. This connection can stop working if there has been any network changes.</p>
+                <ol>
+                    <li>Enter your local Bridge IP below (hold on, <strong>don't</strong> click Connect yet...)</li>
+                    <li>Press the link button on the Bridge itself.</li>
+                    <li>Click Connect below.</li>
+                </ol>
+                <form class="row col-12 col-md-10 col-lg-8" method="post" action="{% url 'lights_auth' %}" >
+                    {% csrf_token %}
+                    <label for="ip" class="col-form-label">Bridge IP</label>
+                    <div class="col-7">
+                        <input class="form-control" required name="ip" id="ip" type="text" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" placeholder="192.168.0.1"{% if bridge_ip %} value="{{ bridge_ip }}"{% endif %}>
+                    </div>
+                    <div class="col-auto mb-3">
+                        <button class="btn btn-success" type="submit">
+                            <span class="material-symbols-outlined md-light md-18 pe-05 pt-1 align-top">link</span>
+                            <span class="align-top">Connect</span>
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <p class="text-center">Please choose one of the following things Barry can help you with:</p>
+                <div class="row">
+                    <button class="btn btn btn-outline-primary my-2 mx-auto">
+                        <span class="material-symbols-outlined md-light md-24 pe-05 align-top">scene</span>
+                        <span class="align-top">Initiate Daily Scenes for Room</span>
+                    </button>
+                </div>
+                <div class="row">
+                    <button class="btn btn btn-outline-primary my-2 mx-auto">
+                        <span class="material-symbols-outlined md-light md-24 pe-05 align-top">switch</span>
+                        <span class="align-top">Configure Switch(es) for Room's Daily Scenes</span>
+                    </button>
+                </div>
+                <div class="row">
+                    <button class="btn btn btn-outline-primary my-2 mx-auto">
+                        <span class="material-symbols-outlined md-light md-24 pe-05 align-top">motion_sensor_active</span>
+                        <span class="align-top">Configure Sensor(s) for Room's Daily Scenes</span>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        <div class="container d-none d-lg-block col-4"></div>
     </div>
 {% endblock content %}
