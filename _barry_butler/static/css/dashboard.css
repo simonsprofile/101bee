@@ -101,6 +101,14 @@ body {
 }
 
 /* Custom CSS */
-.main {
-    background-color: #000 !important;
-}
+/* Icon Size */
+.material-symbols-outlined.md-12 { font-size: 12px; }
+.material-symbols-outlined.md-18 { font-size: 18px; }
+.material-symbols-outlined.md-24 { font-size: 24px; }
+.material-symbols-outlined.md-36 { font-size: 36px; }
+.material-symbols-outlined.md-48 { font-size: 48px; }
+
+/* Spacing */
+.pt-05 { padding-top: 0.125rem !important; }
+.pe-05 { padding-right: 0.125rem !important; }
+
