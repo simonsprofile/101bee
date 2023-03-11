@@ -14,5 +14,10 @@ urlpatterns = [
         LightsDisconnect.as_view(),
         name='lights_disconnect'
     ),
+    path(
+        'lights/initiate-daily-scenes/',
+        LightsInitiateDailyScenes.as_view(),
+        name='lights_intitate_daily_scenes'
+    ),
     path('garage/', Garage.as_view(), name='garage'),
 ]
