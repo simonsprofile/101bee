@@ -91,13 +91,10 @@ class Bridge:
                 'record': r.json()['data'][0]
             }
 
-    def post(self, endpoint, id, payload):
-        if not id:
-            id = ''
-        url = 'https://{}/clip/v2/resource/{}/{}'.format(
+    def post(self, endpoint, payload):
+        url = 'https://{}/clip/v2/resource/{}'.format(
             self.bridge_ip,
             endpoint,
-            id
         )
         r = requests.post(
             url,
