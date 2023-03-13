@@ -10,6 +10,7 @@ class Bridge:
 
     def update_creds(self, bridge_ip, bridge_user):
         self.bridge_ip = bridge_ip
+        self.bridge_user = bridge_user
         self.headers = {
             'hue-application-key': bridge_user,
             'Cache-Control': 'no-cache',
@@ -30,7 +31,10 @@ class Bridge:
                 'message': r.json()[0]['error']['description']
             }
         elif 'success' in r.json()[0]:
-            self.update_creds(self.bridge_ip, r.json()[0]['success']['username'])
+            self.update_creds(
+                self.bridge_ip,
+                r.json()[0]['success']['username']
+            )
             s = LightsSettings.objects.all().first()
             s.bridge_ip = self.bridge_ip
             s.bridge_user = r.json()[0]['success']['username']
@@ -52,32 +56,45 @@ class Bridge:
             print(e)
             return False
 
+    '''
+        The Hue Bridge v2 API is still in development, and some endpoints will
+        still need us to use the old v1 API.
+    '''
+    def v1_endpoints(self):
+        return ['rules']
+
     def search(self, endpoint):
-        url = 'https://{}/clip/v2/resource/{}'.format(
-            self.bridge_ip,
-            endpoint
-        )
-        r = requests.get(url, headers=self.headers, verify=False)
-        if len(r.json()['errors']) > 0:
-            return {
-                'success': False,
-                'errors': '\n'.join([
-                    x['description'] for x in r.json()['errors']
-                ])
-            }
-        else:
-            return {
-                'success': True,
-                'records': r.json()['data']
-            }
+        return self.search_v1(endpoint) \
+            if endpoint in self.v1_endpoints() \
+            else self.search_v2(endpoint)
 
     def get(self, endpoint, id):
-        url = 'https://{}/clip/v2/resource/{}/{}'.format(
-            self.bridge_ip,
-            endpoint,
-            id
-        )
-        r = requests.get(url, headers=self.headers, verify=False)
+        return self.get_v1(endpoint, id) \
+            if endpoint in self.v1_endpoints() \
+            else self.get_v2(endpoint, id)
+
+    def put(self, endpoint, id, payload):
+        return self.post_v1(endpoint, id, payload) \
+            if endpoint in self.v1_endpoints() \
+            else self.post_v2(endpoint, id, payload)
+
+    def post(self, endpoint, payload):
+        return self.post_v1(endpoint, payload) \
+            if endpoint in self.v1_endpoints() \
+            else self.post_v2(endpoint, payload)
+
+    def delete(self, endpoint, id):
+        return self.delete_v1(endpoint, id) \
+            if endpoint in self.v1_endpoints() \
+            else self.delete_v2(endpoint, id)
+
+    def search_v2(self, endpoint):
+        url = f"https://{self.bridge_ip}/clip/v2/resource/{endpoint}"
+        try:
+            r = requests.get(url, headers=self.headers, verify=False, timeout=5)
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+
         if len(r.json()['errors']) > 0:
             return {
                 'success': False,
@@ -86,22 +103,53 @@ class Bridge:
                 ])
             }
         else:
-            return {
-                'success': True,
-                'record': r.json()['data'][0]
-            }
+            return {'success': True, 'records': r.json()['data']}
 
-    def post(self, endpoint, payload):
-        url = 'https://{}/clip/v2/resource/{}'.format(
-            self.bridge_ip,
-            endpoint,
-        )
-        r = requests.post(
-            url,
-            headers=self.headers,
-            verify=False,
-            data=json.dumps(payload)
-        )
+    def get_v2(self, endpoint, id):
+        url = f"https://{self.bridge_ip}/clip/v2/resource/{endpoint}/{id}"
+        try:
+            r = requests.get(url, headers=self.headers, verify=False, timeout=5)
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+        if len(r.json()['errors']) > 0:
+            return {
+                'success': False,
+                'errors': '\n'.join([
+                    x['description'] for x in r.json()['errors']
+                ])
+            }
+        else:
+            return {'success': True, 'record': r.json()['data'][0]}
+
+    def post_v2(self, endpoint, payload):
+        url = f"https://{self.bridge_ip}/clip/v2/resource/{endpoint}"
+        try:
+            r = requests.post(
+                url,
+                headers=self.headers,
+                verify=False,
+                data=json.dumps(payload)
+            )
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+        if len(r.json()['errors']) > 0:
+            return {
+                'success': False,
+                'errors': '\n'.join([
+                    x['description'] for x in r.json()['errors']
+                ])
+            }
+        else:
+            return {'success': True, 'record': r.json()['data'][0]}
+
+    def delete_v2(self, endpoint, id):
+        url = f"https://{self.bridge_ip}/clip/v2/resource/{endpoint}/{id}"
+        try:
+            r = requests.delete(
+                url, headers=self.headers, verify=False, timeout=5
+            )
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
         if len(r.json()['errors']) > 0:
             return {
                 'success': False,
@@ -111,3 +159,134 @@ class Bridge:
             }
         else:
             return {'success': True}
+
+    def search_v1(self, endpoint):
+        url = f"https://{self.bridge_ip}/api/{self.bridge_user}/{endpoint}"
+        try:
+            r = requests.get(url, headers=self.headers, verify=False, timeout=5)
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+        try:
+            data = r.json()
+        except requests.JSONDecodeError:
+            return {'success': False, 'errors': 'Response was not JSON.'}
+        if isinstance(data, list):
+            return {
+                'success': False,
+                'errors': '\n'.join([x['error']['description'] for x in data])
+            }
+        else:
+            return {'success': True, 'records': data}
+
+    def get_v1(self, endpoint, id):
+        url = f"https://{self.bridge_ip}/api/{self.bridge_user}/{endpoint}/{id}"
+        try:
+            r = requests.get(url, headers=self.headers, verify=False, timeout=5)
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+        try:
+            data = r.json()
+        except requests.JSONDecodeError:
+            return {'success': False, 'errors': 'Response was not JSON.'}
+        if isinstance(data, list):
+            return {
+                'success': False,
+                'errors': '\n'.join([x['error']['description'] for x in data])
+            }
+        else:
+            return {'success': True, 'record': data}
+
+    def put_v1(self, endpoint, id, payload):
+        url = f"https://{self.bridge_ip}/api/{self.bridge_user}/{endpoint}/{id}"
+        try:
+            r = requests.put(
+                url,
+                headers=self.headers,
+                verify=False,
+                timeout=5,
+                data=json.dumps(payload)
+            )
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+        try:
+            data = r.json()
+        except requests.JSONDecodeError:
+            return {'success': False, 'errors': 'Response was not JSON.'}
+
+        results = sum([list(x.keys()) for x in data], [])
+        if 'success' in results:
+            r = self.get(endpoint, data[0]['success']['id'])
+            if not r['success']:
+                return {
+                    'success': False,
+                    'errors': ('Updating the record appeared successful, '
+                               'but I was unable to retrieve the result.')
+                }
+            return {'success': True, 'record': r['record']}
+        errors = sum([
+            list(x.values()) for x in data
+            if 'error' in list(x.keys())
+        ], [])
+        return {
+            'success': False,
+            'errors': '\n'.join([x['description'] for x in errors])
+        }
+
+    def post_v1(self, endpoint, payload):
+        url = f"https://{self.bridge_ip}/api/{self.bridge_user}/{endpoint}"
+        try:
+            r = requests.post(
+                url,
+                headers=self.headers,
+                verify=False,
+                timeout=5,
+                data=json.dumps(payload)
+            )
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+        try:
+            data = r.json()
+        except requests.JSONDecodeError:
+            return {'success': False, 'errors': 'Response was not JSON.'}
+        results = sum([list(x.keys()) for x in data], [])
+        if 'success' in results:
+            r = self.get(endpoint, data[0]['success']['id'])
+            if not r['success']:
+                return {
+                    'success': False,
+                    'errors': ('Creating the record appeared successful, '
+                               'but I was unable to retrieve the result.')
+                }
+            return {'success': True, 'record': r['record']}
+        errors = sum([
+            list(x.values()) for x in data
+            if 'error' in list(x.keys())
+        ], [])
+        return {
+            'success': False,
+            'errors': '\n'.join([x['description'] for x in errors])
+        }
+
+    def delete_v1(self, endpoint, id):
+        url = f"https://{self.bridge_ip}/api/{self.bridge_user}/{endpoint}/{id}"
+        try:
+            r = requests.delete(
+                url, headers=self.headers, verify=False, timeout=5
+            )
+        except requests.ConnectTimeout:
+            return {'success': False, 'errors': 'No response from the Bridge.'}
+        try:
+            data = r.json()
+        except requests.JSONDecodeError:
+            return {'success': False, 'errors': 'Response was not JSON.'}
+        results = sum([list(x.keys()) for x in data], [])
+        if 'success' in results:
+            return {'success': True}
+        errors = sum([
+            list(x.values()) for x in data
+            if 'error' in list(x.keys())
+        ], [])
+        return {
+            'success': False,
+            'errors': '\n'.join([x['description'] for x in errors])
+        }

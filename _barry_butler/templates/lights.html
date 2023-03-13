@@ -2,8 +2,7 @@
 
 {% block title %}Lights{% endblock title %}
 
-{% block lights_active_sr_only %}<span class="sr-only">(current)</span>{% endblock lights_active_sr_only %}
-{% block lights_active %} active{% endblock lights_active %}
+{% block lights_active %} active" aria-current="page"{% endblock lights_active %}
 
 {% block content %}
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -41,49 +40,40 @@
                     </div>
                 </form>
             {% else %}
-                <table class="table table-striped table-bordered col-12">
-                    <thead>
-                        <tr>
-                            <th class="col-5 col-sm-4 col-md-3 col-lg-2">Room</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for room in rooms %}
-                            <tr>
-                                <th class="align-middle">{{ room.name }}</th>
-                                <td>
-                                    <div class="row mx-1">
-                                        <form method="post" action="{% url 'lights_intitate_daily_scenes' %}">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="room_id" value="{{ room.id }}">
-                                            <button class="btn btn-sm btn-outline-info my-1 mx-1">
-                                                <span class="material-symbols-outlined md-light md-24 pe-05 align-top">scene</span>
-                                                <span class="align-top">Initiate Daily Scenes</span>
-                                            </button>
-                                        </form>
-                                        <form method="post" action="#">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="room_id" value="{{ room.id }}">
-                                            <button class="btn btn-sm btn-outline-success my-1 mx-1">
-                                                <span class="material-symbols-outlined md-light md-24 pe-05 align-top">switch</span>
-                                                <span class="align-top">Configure Switch(es) for Daily Scenes</span>
-                                            </button>
-                                        </form>
-                                        <form method="post" action="#">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="room_id" value="{{ room.id }}">
-                                            <button class="btn btn-sm btn-outline-warning my-1 mx-1">
-                                                <span class="material-symbols-outlined md-light md-24 pe-05 align-top">motion_sensor_active</span>
-                                                <span class="align-top">Configure Sensor(s) for Daily Scenes</span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="border-bottom">
+                    <p>The below functions will help set up some pretty neat functionality for your Philips Hue lights. There's a few things that must be manually setup before it these shortcuts will work properly though:</p>
+                    <ul>
+                        <li>Add all lights to your <strong>Bridge</strong> and organise them by <strong>Room</strong>.</li>
+                        <li>If the light is a <i>lamp</i>, make sure the word <i>lamp</i> is in it's name.</li>
+                    </ul>
+                </div>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <form method="post" action="{% url 'lights_intitate_daily_scenes' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <label for="action_type" class="col-auto pt-1">I would like to</label>
+                            <div class="col-auto">
+                                <select class="form-select form-select-sm text-center" name="action_type" id="action_type">
+                                    <option value="initiate">initiate Daily Scenes</option>
+                                    <option value="configure_switches">configure Switch(es) for Daily Scenes</option>
+                                    <option value="configure_sensors">configure Sensor(s) for Daily Scenes</option>
+                                </select>
+                            </div>
+                            <label for="room_id" class="col-auto pt-1">in the</label>
+                            <div class="col-auto">
+                                <select class="form-select form-select-sm" name="room_id" id="room_id">
+                                    {% for room in rooms %}
+                                        <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button class="btn btn-sm btn-outline-success col-auto mb-1 ms-2">
+                                <span class="material-symbols-outlined md-light md-24 pe-05 align-top">scene</span>
+                                <span class="align-top">Go!</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             {% endif %}
         </div>
     </div>
