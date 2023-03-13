@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     # Local Apps
     'dashboard',
     'lights',
-    'garage',
+    'entry',
 
     # Third Party Apps
 ]
