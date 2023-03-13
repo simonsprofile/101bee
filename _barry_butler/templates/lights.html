@@ -50,24 +50,28 @@
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <form method="post" action="{% url 'lights_intitate_daily_scenes' %}">
                         {% csrf_token %}
-                        <div class="row">
-                            <label for="action_type" class="col-auto pt-1">I would like to</label>
-                            <div class="col-auto">
-                                <select class="form-select form-select-sm text-center" name="action_type" id="action_type">
-                                    <option value="initiate">initiate Daily Scenes</option>
-                                    <option value="configure_switches">configure Switch(es) for Daily Scenes</option>
-                                    <option value="configure_sensors">configure Sensor(s) for Daily Scenes</option>
-                                </select>
+                        <div class="row text-center">
+                            <label for="action_type" class="col-12 col-lg-auto text-center text-lg-start py-1">I would like to</label>
+                            <div class="col-12 col-lg-auto pb-3">
+                                <div class="col-8 m-auto col-lg-auto pb-3">
+                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="action_type" id="action_type">
+                                        <option value="initiate">initiate Daily Scenes</option>
+                                        <option value="configure_switches">configure Switch(es) for Daily Scenes</option>
+                                        <option value="configure_sensors">configure Sensor(s) for Daily Scenes</option>
+                                    </select>
+                                </div>
                             </div>
-                            <label for="room_id" class="col-auto pt-1">in the</label>
-                            <div class="col-auto">
-                                <select class="form-select form-select-sm" name="room_id" id="room_id">
-                                    {% for room in rooms %}
-                                        <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
-                                    {% endfor %}
-                                </select>
+                            <label for="room_id" class="col-12 col-lg-auto text-center text-lg-start py-1">in the</label>
+                            <div class="col-12 col-lg-auto">
+                                <div class="col-8 m-auto col-lg-auto">
+                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="room_id" id="room_id">
+                                        {% for room in rooms %}
+                                            <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             </div>
-                            <button class="btn btn-sm btn-outline-success col-auto mb-1 ms-2">
+                            <button class="btn btn-sm btn-outline-success col-auto my-3 mx-auto ms-lg-3 mt-lg-0 mb-lg-3">
                                 <span class="material-symbols-outlined md-light md-24 pe-05 align-top">scene</span>
                                 <span class="align-top">Go!</span>
                             </button>
