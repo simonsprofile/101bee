@@ -1,3 +1,5 @@
+import copy
+
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -14,6 +16,7 @@ class Lights(TemplateView):
         context = super().get_context_data(**kwargs)
         context = context | self._check_bridge()
         context = context | self._get_rooms()
+        context = context | self._check_batteries()
         return context
 
     def _check_bridge(self):
@@ -36,8 +39,8 @@ class Lights(TemplateView):
         r = bridge.search('room')
         if not r['success']:
             error = (
-                'I was not able to find the bridge because of the following '
-                f'error: {r["error"]}. Try re-authorising.'
+                'I was not able to find a list of rooms because of the '
+                f"following  error: {r['error']}. Try re-authorising."
             )
             messages.warning(self.request, error)
             return {'rooms': []}
@@ -47,6 +50,48 @@ class Lights(TemplateView):
                 {'id': x['id'], 'name': x['metadata']['name']}
                 for x in r['records']
             ]
+        }
+
+    def _check_batteries(self):
+        s = _get_settings().__dict__
+        if not s['bridge_ip'] or not s['bridge_user'] or not s['bridge_key']:
+            return {'devices': []}
+
+        bridge = Bridge(s)
+
+        r = bridge.search('device')
+        if not r['success']:
+            error = (
+                'I was not able to find a list of devices because of the '
+                f"following  error: {r['error']}. Try re-authorising."
+            )
+            messages.warning(self.request, error)
+            return {'devices': []}
+        device_list = r['records']
+
+        r = bridge.search('device_power')
+        if not r['success']:
+            error = (
+                'I was not able to find a list of devices because of the '
+                f"following  error: {r['error']}. Try re-authorising."
+            )
+            messages.warning(self.request, error)
+            return {'devices': []}
+        power_states = r['records']
+
+        devices = []
+        for state in power_states:
+            name = [
+                x['metadata']['name'] for x in device_list
+                if x['id'] == state['owner']['rid']
+            ][0]
+            devices.append({
+                'name': name,
+                'battery_level': state['power_state']['battery_level']
+            })
+        return {
+            'devices': devices,
+            'battery_warning': any(x['battery_level'] < 20 for x in devices)
         }
 
 
@@ -82,7 +127,7 @@ class LightsDisconnect(View):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
 
-class LightsInitiateDailyScenes(View):
+class LightsCommitChanges(View):
     def get(self):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
@@ -104,6 +149,8 @@ class LightsInitiateDailyScenes(View):
 
         if request.POST['action_type'] == 'initiate':
             return self.initiate_daily_scenes(room)
+        elif request.POST['action_type'] == 'reset':
+            return self.reset_room(room)
         else:
             messages.warning(request, "That function doesn't work yet. Boo!")
             return HttpResponseRedirect(reverse_lazy('lights'))
@@ -116,48 +163,62 @@ class LightsInitiateDailyScenes(View):
             return HttpResponseRedirect(reverse_lazy('lights'))
         lights = r['records']
 
-        from pprint import pprint
-        pprint(lights)
-        raise Exception
+        # Get Scenes in Room
+        r = self._get_scenes_for(room)
+        if not r['success']:
+            messages.warning(self.request, r['error'])
+            return HttpResponseRedirect(reverse_lazy('lights'))
+        scene_names = [x['metadata']['name'] for x in r['records']]
+
+        # Get all Rules
+        r = self.bridge.search('rules')
+        if not r['success']:
+            messages.warning(self.request, r['error'])
+            return HttpResponseRedirect(reverse_lazy('lights'))
+        rules = r['records']
 
         # Build Scenes
         scenes = ['Morning', 'Day', 'Evening', 'Night']
         for scene in scenes:
             # Post scenes
-            action_sets = self._collate_actions_for_scene(scene, lights)
-            for action_set in action_sets:
+            for action_set in self._collate_actions_for_scene(scene, lights):
+                if True in [x['action']['on']['on'] for x in action_set]:
+                    payload = self._collate_payload_for_scene(
+                        scene, room, action_set
+                    )
+                    if payload['metadata']['name'] not in scene_names:
+                        r = self.bridge.post('scene', payload)
+                        if not r['success']:
+                            error = (
+                                'Sorry, I was not able to create a '
+                                f"scene for the {scene} in the "
+                                f"{room['metadata']['name']} because of the "
+                                f"following error. {r['errors']}"
+                            )
+                            messages.warning(self.request, error)
+                            return HttpResponseRedirect(reverse_lazy('lights'))
+
+            # Post transition rule
+            rule_name = f"{room['metadata']['name']} >> {scene}"
+            if len([x for x in rules.values() if x['name'] == rule_name]) < 1:
+                transition_time = self.s[f"{scene.lower()}_time"]
                 r = self.bridge.post(
-                    'scene',
-                    self._collate_payload_for_scene(scene, room, action_set)
+                    'rules',
+                    self._collate_payload_for_transition(
+                        room,
+                        scene,
+                        self._construct_time_interval_string(transition_time),
+                        self.s[f"{scene.lower()}_mirek"]
+                    )
                 )
                 if not r['success']:
                     error = (
-                        'Sorry, I was not able to create the main scene for the '
+                        'Sorry, I was not able to create the transition for the '
                         f"{scene} in the {room['metadata']['name']} because of the "
-                        f"following error. {r['errors']}"
+                        f"following error: {r['errors']}"
                     )
                     messages.warning(self.request, error)
                     return HttpResponseRedirect(reverse_lazy('lights'))
-
-            # Post transition rule
-            transition_time = self.s[f"{scene.lower()}_time"]
-            r = self.bridge.post(
-                'rules',
-                self._collate_payload_for_transition(
-                    room,
-                    scene,
-                    self._construct_time_interval_string(transition_time),
-                    self.s[f"{scene.lower()}_mirek"]
-                )
-            )
-            if not r['success']:
-                error = (
-                    'Sorry, I was not able to create the transition for the '
-                    f"{scene} in the {room['metadata']['name']} because of the "
-                    f"following error: {r['errors']}"
-                )
-                messages.warning(self.request, error)
-                return HttpResponseRedirect(reverse_lazy('lights'))
 
         messages.success(
             self.request,
@@ -165,6 +226,40 @@ class LightsInitiateDailyScenes(View):
             f"{room['metadata']['name']}."
         )
 
+        return HttpResponseRedirect(reverse_lazy('lights'))
+
+    def reset_room(self, room):
+        # Get Scenes in Room
+        r = self._get_scenes_for(room)
+        if not r['success']:
+            messages.warning(self.request, r['error'])
+            return HttpResponseRedirect(reverse_lazy('lights'))
+        scenes = r['records']
+
+        # Get all Rules
+        r = self.bridge.search('rules')
+        if not r['success']:
+            messages.warning(self.request, r['error'])
+            return HttpResponseRedirect(reverse_lazy('lights'))
+        rules = r['records']
+
+        for scene in scenes:
+            r = self.bridge.delete('scene', scene['id'])
+            if not r['success']:
+                messages.warning(self.request, r['error'])
+                return HttpResponseRedirect(reverse_lazy('lights'))
+
+        for rule_id, rule in rules.items():
+            for scene_name in ['Morning', 'Day', 'Evening', 'Night']:
+                rule_to_delete = f"{room['metadata']['name']} >> {scene_name}"
+                if rule['name'] == rule_to_delete:
+                    self.bridge.delete('rules', rule_id)
+
+        messages.success(
+            self.request,
+            f"All scenes and rules for Daily Scene transitions deleted for "
+            f"{room['metadata']['name']}."
+        )
         return HttpResponseRedirect(reverse_lazy('lights'))
 
     def _get_lights_in(self, room):
@@ -185,47 +280,38 @@ class LightsInitiateDailyScenes(View):
                 lights.append(r['record'])
         return {'success': True, 'records': lights}
 
+    def _get_scenes_for(self, room):
+        r = self.bridge.search('scene')
+        if not r['success']:
+            return r
+        return {
+            'success': True,
+            'records': [
+                x for x in r['records']
+                if x['group']['rid'] == room['id']
+            ]
+        }
+
     def _collate_actions_for_scene(self, scene, lights):
-        main = []
-        lamps = []
+        action_template = {
+            'target': {'rid': None, 'rtype': 'light'},
+            'action': {
+                'on': {'on': True},
+                'dimming': {
+                    'brightness': self.s[f"{scene.lower()}_brightness"]
+                },
+                'color_temperature': {
+                    'mirek': self.s[f"{scene.lower()}_mirek"]
+                },
+            }
+        }
+        main, lamps = [], []
         for light in lights:
-            main_action = {
-                'target': {
-                    'rid': light['light_service_id'],
-                    'rtype': 'light'
-                },
-                'action': {
-                    'on': {'on': True},
-                    'dimming': {
-                        'brightness': self.s[f"{scene.lower()}_brightness"]
-                    },
-                    'color_temperature': {
-                        'mirek': self.s[f"{scene.lower()}_mirek"]
-                    },
-                }
-            }
-            lamp_action = {
-                'target': {
-                    'rid': light['light_service_id'],
-                    'rtype': 'light'
-                },
-                'action': {
-                    'on': {'on': light['is_lamp']},
-                    'dimming': {
-                        'brightness': self.s[f"{scene.lower()}_brightness"]
-                    },
-                    'color_temperature': {
-                        'mirek': self.s[f"{scene.lower()}_mirek"]
-                    },
-                }
-            }
-            main.append(main_action)
-            lamps.append(lamp_action)
-
-        from pprint import pprint
-        pprint(main)
-        pprint(lamps)
-
+            action = copy.deepcopy(action_template)
+            action['target']['rid'] = light['light_service_id']
+            main.append(copy.deepcopy(action))
+            action['action']['on']['on'] = light['is_lamp']
+            lamps.append(copy.deepcopy(action))
         return [main, lamps]
 
     def _collate_payload_for_scene(self, scene_name, room, actions):

@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Lights</h1>
+        <h2>Lights</h2>
         <div class="btn-toolbar mb-2 mb-md-0">
             {% if authorised %}
                 <a class="btn btn-sm btn-outline-danger" href="{% url 'lights_disconnect' %}">
@@ -40,7 +40,20 @@
                     </div>
                 </form>
             {% else %}
+                {% if battery_warning %}
+                    <div class="border-bottom mb-3 pb-2">
+                        {% for device in devices %}
+                            {% if device.battery_level < 20 %}
+                                <span class="btn btn-sm btn-secondary position-relative mb-2">
+                                    {{ device.name }}
+                                    <span class="badge bg-danger">{{ device.battery_level }}% Battery</span>
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <div class="border-bottom">
+                    <h4>Setup Shortcuts</h4>
                     <p>The below functions will help set up some pretty neat functionality for your Philips Hue lights. There's a few things that must be manually setup before it these shortcuts will work properly though:</p>
                     <ul>
                         <li>Add all lights to your <strong>Bridge</strong> and organise them by <strong>Room</strong>.</li>
@@ -48,13 +61,15 @@
                     </ul>
                 </div>
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <form method="post" action="{% url 'lights_intitate_daily_scenes' %}">
+                    <form method="post" action="{% url 'lights_commit' %}">
                         {% csrf_token %}
                         <div class="row text-center">
                             <label for="action_type" class="col-12 col-lg-auto text-center text-lg-start py-1">I would like to</label>
                             <div class="col-12 col-lg-auto pb-3">
                                 <div class="col-8 m-auto col-lg-auto pb-3">
-                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="action_type" id="action_type">
+                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="action_type" id="action_type" required>
+                                        <option disabled selected value>Select an action...</option>
+                                        <option value="reset">delete all scenes and rules</option>
                                         <option value="initiate">initiate Daily Scenes</option>
                                         <option value="configure_switches">configure Switch(es) for Daily Scenes</option>
                                         <option value="configure_sensors">configure Sensor(s) for Daily Scenes</option>
@@ -64,7 +79,8 @@
                             <label for="room_id" class="col-12 col-lg-auto text-center text-lg-start py-1">in the</label>
                             <div class="col-12 col-lg-auto">
                                 <div class="col-8 m-auto col-lg-auto">
-                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="room_id" id="room_id">
+                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="room_id" id="room_id" required>
+                                        <option disabled selected value>Select a room...</option>
                                         {% for room in rooms %}
                                             <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
                                         {% endfor %}
@@ -72,8 +88,8 @@
                                 </div>
                             </div>
                             <button class="btn btn-sm btn-outline-success col-auto my-3 mx-auto ms-lg-3 mt-lg-0 mb-lg-3">
-                                <span class="material-symbols-outlined md-light md-24 pe-05 align-top">scene</span>
-                                <span class="align-top">Go!</span>
+                                <span class="material-symbols-outlined md-light md-24 pe-05 align-top">tips_and_updates</span>
+                                <span class="align-top">Make Changes</span>
                             </button>
                         </div>
                     </form>
