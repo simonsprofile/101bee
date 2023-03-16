@@ -40,18 +40,30 @@
                     </div>
                 </form>
             {% else %}
-                {% if battery_warning %}
-                    <div class="border-bottom mb-3 pb-2">
+                    <div class="mb-2 pb-2">
                         {% for device in devices %}
                             {% if device.battery_level < 20 %}
                                 <span class="btn btn-sm btn-secondary position-relative mb-2">
                                     {{ device.name }}
-                                    <span class="badge bg-danger">{{ device.battery_level }}% Battery</span>
+                                    <span class="badge {% if device.battery_level < 10 %}bg-danger{% else %}bg-warning{% endif %}">
+                                        {{ device.battery_level }}% Battery
+                                    </span>
                                 </span>
                             {% endif %}
                         {% endfor %}
+                        {% if rule_count > 225 %}
+                            <span class="btn btn-sm btn-warning position-relative mb-2">
+                                Bridge near capacity
+                                <span class="badge bg-danger">{{ rule_count }} Rules</span>
+                            </span>
+                        {% endif %}
+                        {% if bulb_count > 45 %}
+                            <span class="btn btn-sm btn-warning position-relative mb-2">
+                                Bridge near capacity
+                                <span class="badge bg-danger">{{ bulb_count }} Bulbs</span>
+                            </span>
+                        {% endif %}
                     </div>
-                {% endif %}
                 <div class="border-bottom">
                     <h4>Setup Shortcuts</h4>
                     <p>The below functions will help set up some pretty neat functionality for your Philips Hue lights. There's a few things that must be manually setup before it these shortcuts will work properly though:</p>
@@ -67,7 +79,7 @@
                             <label for="action_type" class="col-12 col-lg-auto text-center text-lg-start py-1">I would like to</label>
                             <div class="col-12 col-lg-auto pb-3">
                                 <div class="col-8 m-auto col-lg-auto pb-3">
-                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="action_type" id="action_type" required>
+                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="action_type" id="action_type" onchange="handleSelectChange()" required>
                                         <option disabled selected value>Select an action...</option>
                                         <option value="reset">delete all scenes and rules</option>
                                         <option value="initiate">initiate Daily Scenes</option>
@@ -92,9 +104,63 @@
                                 <span class="align-top">Make Changes</span>
                             </button>
                         </div>
+                        <div class="row text-center">
+                            <div class="col d-none" id="switch_list">
+                                <h6>Select the switch(es) to use:</h6>
+                                {% for switch in switches %}
+                                    <div class="form-check form-check-inline form-switch">
+                                        <input class="form-check-input" type="checkbox" id="switch_{{ switch.id }}" name="switch_{{ switch.id }}">
+                                        <label class="form-check-label" for="switch_{{ switch.id }}">{{ switch.metadata.name }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="col d-none" id="sensor_list">
+                                <h6>Select the sensor(s) to use:</h6>
+                                {% for sensor in sensors %}
+                                    <div class="form-check form-check-inline form-switch">
+                                        <input class="form-check-input" type="checkbox" id="sensor_{{ sensor.id }}" name="sensor_{{ sensor.id }}">
+                                        <label class="form-check-label" for="sensor_{{ sensor.id }}">{{ sensor.metadata.name }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="col d-none" id="button_list">
+                                <h6>Select the Button(s) to use:</h6>
+                                {% for button in buttons %}
+                                    <div class="form-check form-check-inline form-switch">
+                                        <input class="form-check-input" type="checkbox" id="button_{{ button.id }}" name="button_{{ button.id }}">
+                                        <label class="form-check-label" for="button_{{ button.id }}">{{ button.metadata.name }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </form>
                 </div>
             {% endif %}
         </div>
     </div>
 {% endblock content %}
+
+{% block javascript_tail %}
+    <script>
+        const handleSelectChange = () => {
+            let select = document.getElementById('action_type');
+            let switchList = document.getElementById('switch_list');
+            let sensorList = document.getElementById('sensor_list');
+            let buttonList = document.getElementById('button_list');
+
+            if (select.value == 'configure_switches') {
+                switchList.classList.remove('d-none');
+                sensorList.classList.add('d-none');
+                buttonList.classList.add('d-none');
+            } else if (select.value == 'configure_sensors') {
+                switchList.classList.add('d-none');
+                sensorList.classList.remove('d-none');
+                buttonList.classList.add('d-none');
+            } else {
+                switchList.classList.add('d-none');
+                sensorList.classList.add('d-none');
+                buttonList.classList.add('d-none');
+            }
+        }
+    </script>
+{% endblock javascript_tail %}
