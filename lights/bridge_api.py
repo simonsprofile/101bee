@@ -61,7 +61,7 @@ class Bridge:
         still need us to use the old v1 API.
     '''
     def v1_endpoints(self):
-        return ['rules']
+        return ['rules', 'schedules', 'sensors']
 
     def search(self, endpoint):
         return self.search_v1(endpoint) \
@@ -257,6 +257,7 @@ class Bridge:
                     'errors': ('Creating the record appeared successful, '
                                'but I was unable to retrieve the result.')
                 }
+            r['record']['id_v1'] = f"/{endpoint}/{data[0]['success']['id']}"
             return {'success': True, 'record': r['record']}
         errors = sum([
             list(x.values()) for x in data
