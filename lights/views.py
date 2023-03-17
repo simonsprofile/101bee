@@ -9,6 +9,12 @@ from django.views.generic import View, TemplateView
 
 from .bridge_api import Bridge
 from .models import LightsSettings
+from .workflows import (
+    DailyScenesForRoom,
+    SwitchesForRoom,
+    SensorsForRoom,
+    WorkflowException,
+)
 
 
 class Lights(TemplateView):
@@ -74,7 +80,7 @@ class Lights(TemplateView):
     def _get_rooms(self):
         s = _get_settings().__dict__
         if not s['bridge_ip'] or not s['bridge_user'] or not s['bridge_key']:
-            return { 'rooms': [] }
+            return {'rooms': []}
 
         bridge = Bridge(s)
         r = bridge.search('room')
@@ -169,7 +175,7 @@ class LightsAuth(View):
         ip = request.POST['ip']
         s = _get_settings().__dict__
         s['hub_ip'] = ip
-        bridge = Bridge(self._get_settings().__dict__)
+        bridge = Bridge(_get_settings().__dict__)
         r = bridge.authorise()
         if r['success']:
             messages.success(request, 'Bridge authorised!')
@@ -228,14 +234,24 @@ class LightsCommitChanges(View):
             return self.initiate_daily_scenes(room)
         elif request.POST['action_type'] == 'reset':
             return self.reset_room(room)
+        elif request.POST['action_type'] == 'remove_switches':
+            switch_manager = SwitchesForRoom(request, room, switches)
+            try:
+                switch_manager.remove_configuration()
+            except WorkflowException as e:
+                messages.error(request, e)
         elif request.POST['action_type'] == 'configure_switches':
             if len(switches) < 1:
-                messages.danger(request, 'Please select at least one switch.')
-                return HttpResponseRedirect(reverse_lazy('lights'))
-            return self.configure_switches(room, switches)
+                messages.error(request, 'Please select at least one switch.')
+            else:
+                switch_manager = SwitchesForRoom(request, room, switches)
+                try:
+                    switch_manager.create_configuration()
+                except WorkflowException as e:
+                    messages.error(request, e)
         else:
             messages.warning(request, "That function doesn't work yet. Boo!")
-            return HttpResponseRedirect(reverse_lazy('lights'))
+        return HttpResponseRedirect(reverse_lazy('lights'))
 
     def initiate_daily_scenes(self, room):
         # Get Lights in Room
@@ -743,7 +759,7 @@ class LightsCommitChanges(View):
                 {
                     "address": f"{room['id_v1']}/action",
                     "method": "PUT",
-                    "body": {"ct": mirek, "transitiontime": 6000 }
+                    "body": {"ct": mirek, "transitiontime": 6000}
                 }
             ]
         }
