@@ -61,7 +61,7 @@ class Bridge:
         still need us to use the old v1 API.
     '''
     def v1_endpoints(self):
-        return ['rules', 'schedules', 'sensors']
+        return ['rules', 'schedules', 'sensors', 'resourcelinks']
 
     def search(self, endpoint):
         return self.search_v1(endpoint) \
