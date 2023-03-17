@@ -74,9 +74,9 @@ class Bridge:
             else self.get_v2(endpoint, id)
 
     def put(self, endpoint, id, payload):
-        return self.post_v1(endpoint, id, payload) \
+        return self.put_v1(endpoint, id, payload) \
             if endpoint in self.v1_endpoints() \
-            else self.post_v2(endpoint, id, payload)
+            else self.put_v2(endpoint, id, payload)
 
     def post(self, endpoint, payload):
         return self.post_v1(endpoint, payload) \
