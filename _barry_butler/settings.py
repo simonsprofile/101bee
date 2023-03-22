@@ -18,9 +18,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-# Application definition
-
+# Applications #
 INSTALLED_APPS = [
     # Django Apps
     'django.contrib.admin',
@@ -31,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Local Apps
+    '_barry_butler.lib',
     'dashboard',
     'lights',
     'entry',
@@ -69,7 +68,7 @@ TEMPLATES = [
 WSGI_APPLICATION = '_barry_butler.wsgi.application'
 
 
-# Database
+# Database #
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
@@ -80,7 +79,7 @@ DATABASES = {
 }
 
 
-# Password validation
+# Password validation #
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -99,10 +98,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
+# Internationalization #
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-gb'
 
 TIME_ZONE = 'UTC'
 
@@ -111,7 +110,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-## Static Files ##
+# Static Files #
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = str(ROOT_DIR / "staticfiles")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
@@ -126,10 +125,9 @@ STATICFILES_FINDERS = [
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Messages
+# Bootstrap Message Classes
 MESSAGE_TAGS = {
     messages.DEBUG: 'alert-secondary',
     messages.INFO: 'alert-info',
