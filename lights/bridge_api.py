@@ -194,7 +194,10 @@ class Bridge:
                 'errors': '\n'.join([x['error']['description'] for x in data])
             }
         else:
-            return {'success': True, 'record': data}
+            return {
+                'success': True,
+                'record': data | {'id_v1': f"/{endpoint}/{id}"}
+            }
 
     def put_v1(self, endpoint, id, payload):
         url = f"https://{self.bridge_ip}/api/{self.bridge_user}/{endpoint}/{id}"
@@ -220,7 +223,8 @@ class Bridge:
                 return {
                     'success': False,
                     'errors': ('Updating the record appeared successful, '
-                               'but I was unable to retrieve the result.')
+                               'but I was unable to retrieve the result '
+                               f"because of the error: {r['errors']}")
                 }
             return {'success': True, 'record': r['record']}
         errors = sum([
@@ -255,7 +259,8 @@ class Bridge:
                 return {
                     'success': False,
                     'errors': ('Creating the record appeared successful, '
-                               'but I was unable to retrieve the result.')
+                               'but I was unable to retrieve the result '
+                               f"because of the error: {r['errors']}")
                 }
             r['record']['id_v1'] = f"/{endpoint}/{data[0]['success']['id']}"
             return {'success': True, 'record': r['record']}
