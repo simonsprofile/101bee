@@ -1,3 +1,5 @@
+This document is an outline of the planned functionality of this web-app as described by each required workflow/user-story. If the workflow is a bullet, it is still un-planned. If the workflow is numbered, it is planned. If it is strikethrough, it is complete.
+
 ## Domain: User Management
 1. A superuser can add a new user in the admin panel and send an invite for them to set up their own password.
 2. A superuser can authorise and de-authorise a user to access home control.
@@ -6,9 +8,9 @@
 ## Domain: Lighting
 ### Admin
 1. An authorised user can set the default brightness, colour, and time-intervals for the 'Daily Scenes'.
-2. An authorised user can go to the lighting page, and initiate the standard 'Daily Scenes' in any given room.
-3. An authorised user can go to the lighting page and set up one or more light switches to control any given room with the standard 'Daily Scenes'.
-4. An authorised user can go to the lighting page and set up one or more movement sensors to control any given room with the standard 'Daily Scenes'.
+2. ~~An authorised user can go to the lighting page, and initiate the standard 'Daily Scenes' in any given room.~~
+3. ~~An authorised user can go to the lighting page and set up one or more light switches to control any given room with the standard 'Daily Scenes'.~~
+4. ~~An authorised user can go to the lighting page and set up one or more movement sensors to control any given room with the standard 'Daily Scenes'.~~
 
 ### Control
 - Display mode.
