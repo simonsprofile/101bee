@@ -22,7 +22,7 @@ class KeyAdmin(admin.ModelAdmin):
         if key.User.first_name or key.User.last_name:
             return f"{key.User.first_name} {key.User.last_name}"
         else:
-            return object.User.username
+            return key.User.username
 
 
 admin.site.register(Door, DoorAdmin)
