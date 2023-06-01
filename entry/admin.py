@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.shortcuts import redirect
 from .models import *
 
 
@@ -25,5 +26,17 @@ class KeyAdmin(admin.ModelAdmin):
             return key.User.username
 
 
+class EntryUserAccessAdmin(admin.ModelAdmin):
+    list_display = ('user_name', )
+
+    @admin.display(description='User')
+    def user_name(self, object):
+        if object.User.first_name or object.User.last_name:
+            return f"{object.User.first_name} {object.User.last_name}"
+        else:
+            return object.User.username
+
+
 admin.site.register(Door, DoorAdmin)
 admin.site.register(Key, KeyAdmin)
+admin.site.register(EntryUserAccess, EntryUserAccessAdmin)

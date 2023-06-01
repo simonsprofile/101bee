@@ -8,162 +8,170 @@
             <span class="material-symbols-outlined md-dark md-36 ms-1">settings</span>
             <h1 class="header-icon-text">Settings</h1>
         </div>
-        <div class=" flex-container flex-row">
-            <span class="material-symbols-outlined md-dark md-30 ms-2">scene</span>
-            <h2 class="header-icon-text">Lights: Default Daily Scenes</h2>
-        </div>
+        {% if light_settings %}
+            <div class=" flex-container flex-row">
+                <span class="material-symbols-outlined md-dark md-30 ms-2">scene</span>
+                <h2 class="header-icon-text">Lights: Default Daily Scenes</h2>
+            </div>
+            <div class="flex-container flex-col">
+                <div class="content-tile">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="flex-container flex-row flex-wrap mb-3 border-bottom pb-4">
+                            <div class="flex-container flex-row col-5">
+                                <div class="">
+                                    <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-morning">wb_twilight</span>
+                                </div>
+                                <div class="flex-container flex-col flex-e mt-4 md3-text-input-container ps-1 pe-2 flex-stretch-this">
+                                    <label class="md3-text-input-label" for="morning_time">Morning Begins</label>
+                                    <input class="md3-text-input-field mt-2" name="morning_time"  id="morning_time" type="time" value="{{ light_settings.morning_time|time:'H:i:s' }}">
+                                </div>
+                            </div>
+                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-4">
+                                <div class="md3-slider-input-container">
+                                    <label for="morning_mirek" class="md3-text-input-label">Colour Temperature (<span id="morning_mirek_range_display">{{ light_settings.morning_mirek }}</span> mirek)</label>
+                                </div>
+                                <div class="flex-container flex-row flex-t">
+                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-morning mt-0">wb_sunny</span>
+                                    <div class="md3-slider-input-container pt-2 col-9" name="morning_colour_range">
+                                        <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.morning_mirek }} id="morning_mirek" name="morning_mirek" oninput="document.getElementById('morning_mirek_range_display').textContent = this.value">
+                                    </div>
+                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
+                                </div>
+                            </div>
+                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-4">
+                                <div class="md3-slider-input-container">
+                                    <label for="morning_mirek" class="md3-text-input-label">Brightness (<span id="morning_brightness_range_display">{{ light_settings.morning_brightness }}</span>%)</label>
+                                </div>
+                                <div class="flex-container flex-row flex-t">
+                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
+                                    <div class="md3-slider-input-container pt-2 col-9" name="morning_colour_range">
+                                        <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.morning_brightness }} id="morning_brightness" name="morning_brightness" oninput="document.getElementById('morning_brightness_range_display').textContent = this.value">
+                                    </div>
+                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-container flex-row mb-3 border-bottom pb-4">
+                            <div class="">
+                                <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-day">wb_sunny</span>
+                            </div>
+                            <div class="flex-container flex-row col-12">
+                                <div class="flex-container flex-col mt-4 col-2 md3-text-input-container ps-1 pe-2">
+                                    <label class="md3-text-input-label" for="day_time">Day Begins</label>
+                                    <input class="md3-text-input-field mt-2" name="day_time"  id="day_time" type="time" value="{{ light_settings.day_time|time:'H:i:s' }}">
+                                </div>
+                                <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
+                                    <div class="md3-slider-input-container">
+                                        <label for="day_mirek" class="md3-text-input-label">Colour Temperature (<span id="day_mirek_range_display">{{ light_settings.day_mirek }}</span> mirek)</label>
+                                    </div>
+                                    <div class="flex-container flex-row flex-t col-12">
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-day mt-0">wb_sunny</span>
+                                        <div class="md3-slider-input-container pt-2 col-9" name="day_colour_range">
+                                            <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.day_mirek }} id="day_mirek" name="day_mirek" oninput="document.getElementById('day_mirek_range_display').textContent = this.value">
+                                        </div>
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
+                                    </div>
+                                </div>
+                                <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
+                                    <div class="md3-slider-input-container">
+                                        <label for="day_mirek" class="md3-text-input-label">Brightness (<span id="day_brightness_range_display">{{ light_settings.day_brightness }}</span>%)</label>
+                                    </div>
+                                    <div class="flex-container flex-row flex-t col-12">
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
+                                        <div class="md3-slider-input-container pt-2 col-9" name="day_colour_range">
+                                            <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.day_brightness }} id="day_brightness" name="day_brightness" oninput="document.getElementById('day_brightness_range_display').textContent = this.value">
+                                        </div>
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-container flex-row mb-3 border-bottom pb-4">
+                            <div class="">
+                                <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-evening">wb_incandescent</span>
+                            </div>
+                            <div class="flex-container flex-row col-12">
+                                <div class="flex-container flex-col mt-4 col-2 md3-text-input-container ps-1 pe-2">
+                                    <label class="md3-text-input-label" for="evening_time">Evening Begins</label>
+                                    <input class="md3-text-input-field mt-2" name="evening_time"  id="evening_time" type="time" value="{{ light_settings.evening_time|time:'H:i:s' }}">
+                                </div>
+                                <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
+                                    <div class="md3-slider-input-container">
+                                        <label for="evening_mirek" class="md3-text-input-label">Colour Temperature (<span id="evening_mirek_range_display">{{ light_settings.evening_mirek }}</span> mirek)</label>
+                                    </div>
+                                    <div class="flex-container flex-row flex-t col-12">
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-morning mt-0">wb_sunny</span>
+                                        <div class="md3-slider-input-container pt-2 col-9" name="evening_colour_range">
+                                            <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.evening_mirek }} id="evening_mirek" name="evening_mirek" oninput="document.getElementById('evening_mirek_range_display').textContent = this.value">
+                                        </div>
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
+                                    </div>
+                                </div>
+                                <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
+                                    <div class="md3-slider-input-container">
+                                        <label for="evening_mirek" class="md3-text-input-label">Brightness (<span id="evening_brightness_range_display">{{ light_settings.evening_brightness }}</span>%)</label>
+                                    </div>
+                                    <div class="flex-container flex-row flex-t col-12">
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
+                                        <div class="md3-slider-input-container pt-2 col-9" name="evening_colour_range">
+                                            <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.evening_brightness }} id="evening_brightness" name="evening_brightness" oninput="document.getElementById('evening_brightness_range_display').textContent = this.value">
+                                        </div>
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-container flex-row mb-3">
+                            <div class="">
+                                <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-night">nightlight</span>
+                            </div>
+                            <div class="flex-container flex-row col-12">
+                                <div class="flex-container flex-col mt-4 col-2 md3-text-input-container ps-1 pe-2">
+                                    <label class="md3-text-input-label" for="night_time">Night Begins</label>
+                                    <input class="md3-text-input-field mt-2" name="night_time"  id="night_time" type="time" value="{{ light_settings.night_time|time:'H:i:s' }}">
+                                </div>
+                                <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
+                                    <div class="md3-slider-input-container">
+                                        <label for="night_mirek" class="md3-text-input-label">Colour Temperature (<span id="night_mirek_range_display">{{ light_settings.night_mirek }}</span> mirek)</label>
+                                    </div>
+                                    <div class="flex-container flex-row flex-t col-12">
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-morning mt-0">wb_sunny</span>
+                                        <div class="md3-slider-input-container pt-2 col-9" name="night_colour_range">
+                                            <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.night_mirek }} id="night_mirek" name="night_mirek" oninput="document.getElementById('night_mirek_range_display').textContent = this.value">
+                                        </div>
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
+                                    </div>
+                                </div>
+                                <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
+                                    <div class="md3-slider-input-container">
+                                        <label for="night_mirek" class="md3-text-input-label">Brightness (<span id="night_brightness_range_display">{{ light_settings.night_brightness }}</span>%)</label>
+                                    </div>
+                                    <div class="flex-container flex-row flex-t col-12">
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
+                                        <div class="md3-slider-input-container pt-2 col-9" name="night_colour_range">
+                                            <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.night_brightness }} id="night_brightness" name="night_brightness" oninput="document.getElementById('night_brightness_range_display').textContent = this.value">
+                                        </div>
+                                        <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-container flex-row flex-c">
+                            <button class="button button-success mb-3" type="submit">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">save</span>
+                                <span class="align-middle ps-1">Save</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% else %}
         <div class="flex-container flex-col">
             <div class="content-tile">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="flex-container flex-row flex-wrap mb-3 border-bottom pb-4">
-                        <div class="flex-container flex-row col-5">
-                            <div class="">
-                                <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-morning">wb_twilight</span>
-                            </div>
-                            <div class="flex-container flex-col flex-e mt-4 md3-text-input-container ps-1 pe-2 flex-stretch-this">
-                                <label class="md3-text-input-label" for="morning_time">Morning Begins</label>
-                                <input class="md3-text-input-field mt-2" name="morning_time"  id="morning_time" type="time" value="{{ light_settings.morning_time|time:'H:i:s' }}">
-                            </div>
-                        </div>
-                        <div class="flex-container-no-gap flex-col mt-4 me-4 col-4">
-                            <div class="md3-slider-input-container">
-                                <label for="morning_mirek" class="md3-text-input-label">Colour Temperature (<span id="morning_mirek_range_display">{{ light_settings.morning_mirek }}</span> mirek)</label>
-                            </div>
-                            <div class="flex-container flex-row flex-t">
-                                <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-morning mt-0">wb_sunny</span>
-                                <div class="md3-slider-input-container pt-2 col-9" name="morning_colour_range">
-                                    <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.morning_mirek }} id="morning_mirek" name="morning_mirek" oninput="document.getElementById('morning_mirek_range_display').textContent = this.value">
-                                </div>
-                                <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
-                            </div>
-                        </div>
-                        <div class="flex-container-no-gap flex-col mt-4 me-4 col-4">
-                            <div class="md3-slider-input-container">
-                                <label for="morning_mirek" class="md3-text-input-label">Brightness (<span id="morning_brightness_range_display">{{ light_settings.morning_brightness }}</span>%)</label>
-                            </div>
-                            <div class="flex-container flex-row flex-t">
-                                <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
-                                <div class="md3-slider-input-container pt-2 col-9" name="morning_colour_range">
-                                    <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.morning_brightness }} id="morning_brightness" name="morning_brightness" oninput="document.getElementById('morning_brightness_range_display').textContent = this.value">
-                                </div>
-                                <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex-container flex-row mb-3 border-bottom pb-4">
-                        <div class="">
-                            <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-day">wb_sunny</span>
-                        </div>
-                        <div class="flex-container flex-row col-12">
-                            <div class="flex-container flex-col mt-4 col-2 md3-text-input-container ps-1 pe-2">
-                                <label class="md3-text-input-label" for="day_time">Day Begins</label>
-                                <input class="md3-text-input-field mt-2" name="day_time"  id="day_time" type="time" value="{{ light_settings.day_time|time:'H:i:s' }}">
-                            </div>
-                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
-                                <div class="md3-slider-input-container">
-                                    <label for="day_mirek" class="md3-text-input-label">Colour Temperature (<span id="day_mirek_range_display">{{ light_settings.day_mirek }}</span> mirek)</label>
-                                </div>
-                                <div class="flex-container flex-row flex-t col-12">
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-day mt-0">wb_sunny</span>
-                                    <div class="md3-slider-input-container pt-2 col-9" name="day_colour_range">
-                                        <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.day_mirek }} id="day_mirek" name="day_mirek" oninput="document.getElementById('day_mirek_range_display').textContent = this.value">
-                                    </div>
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
-                                </div>
-                            </div>
-                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
-                                <div class="md3-slider-input-container">
-                                    <label for="day_mirek" class="md3-text-input-label">Brightness (<span id="day_brightness_range_display">{{ light_settings.day_brightness }}</span>%)</label>
-                                </div>
-                                <div class="flex-container flex-row flex-t col-12">
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
-                                    <div class="md3-slider-input-container pt-2 col-9" name="day_colour_range">
-                                        <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.day_brightness }} id="day_brightness" name="day_brightness" oninput="document.getElementById('day_brightness_range_display').textContent = this.value">
-                                    </div>
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex-container flex-row mb-3 border-bottom pb-4">
-                        <div class="">
-                            <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-evening">wb_incandescent</span>
-                        </div>
-                        <div class="flex-container flex-row col-12">
-                            <div class="flex-container flex-col mt-4 col-2 md3-text-input-container ps-1 pe-2">
-                                <label class="md3-text-input-label" for="evening_time">Evening Begins</label>
-                                <input class="md3-text-input-field mt-2" name="evening_time"  id="evening_time" type="time" value="{{ light_settings.evening_time|time:'H:i:s' }}">
-                            </div>
-                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
-                                <div class="md3-slider-input-container">
-                                    <label for="evening_mirek" class="md3-text-input-label">Colour Temperature (<span id="evening_mirek_range_display">{{ light_settings.evening_mirek }}</span> mirek)</label>
-                                </div>
-                                <div class="flex-container flex-row flex-t col-12">
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-morning mt-0">wb_sunny</span>
-                                    <div class="md3-slider-input-container pt-2 col-9" name="evening_colour_range">
-                                        <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.evening_mirek }} id="evening_mirek" name="evening_mirek" oninput="document.getElementById('evening_mirek_range_display').textContent = this.value">
-                                    </div>
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
-                                </div>
-                            </div>
-                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
-                                <div class="md3-slider-input-container">
-                                    <label for="evening_mirek" class="md3-text-input-label">Brightness (<span id="evening_brightness_range_display">{{ light_settings.evening_brightness }}</span>%)</label>
-                                </div>
-                                <div class="flex-container flex-row flex-t col-12">
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
-                                    <div class="md3-slider-input-container pt-2 col-9" name="evening_colour_range">
-                                        <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.evening_brightness }} id="evening_brightness" name="evening_brightness" oninput="document.getElementById('evening_brightness_range_display').textContent = this.value">
-                                    </div>
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex-container flex-row mb-3">
-                        <div class="">
-                            <span class="material-symbols-outlined md-dark md-48 light-icon light-bg-night">nightlight</span>
-                        </div>
-                        <div class="flex-container flex-row col-12">
-                            <div class="flex-container flex-col mt-4 col-2 md3-text-input-container ps-1 pe-2">
-                                <label class="md3-text-input-label" for="night_time">Night Begins</label>
-                                <input class="md3-text-input-field mt-2" name="night_time"  id="night_time" type="time" value="{{ light_settings.night_time|time:'H:i:s' }}">
-                            </div>
-                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
-                                <div class="md3-slider-input-container">
-                                    <label for="night_mirek" class="md3-text-input-label">Colour Temperature (<span id="night_mirek_range_display">{{ light_settings.night_mirek }}</span> mirek)</label>
-                                </div>
-                                <div class="flex-container flex-row flex-t col-12">
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-morning mt-0">wb_sunny</span>
-                                    <div class="md3-slider-input-container pt-2 col-9" name="night_colour_range">
-                                        <input type="range" class="md3-slider-input-field col-12" min="153" max="500" step=1 value={{ light_settings.night_mirek }} id="night_mirek" name="night_mirek" oninput="document.getElementById('night_mirek_range_display').textContent = this.value">
-                                    </div>
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon light-bg-night mt-0">nightlight</span>
-                                </div>
-                            </div>
-                            <div class="flex-container-no-gap flex-col mt-4 me-4 col-5">
-                                <div class="md3-slider-input-container">
-                                    <label for="night_mirek" class="md3-text-input-label">Brightness (<span id="night_brightness_range_display">{{ light_settings.night_brightness }}</span>%)</label>
-                                </div>
-                                <div class="flex-container flex-row flex-t col-12">
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_low</span>
-                                    <div class="md3-slider-input-container pt-2 col-9" name="night_colour_range">
-                                        <input type="range" class="md3-slider-input-field col-12" min="0" max="100" step=1 value={{ light_settings.night_brightness }} id="night_brightness" name="night_brightness" oninput="document.getElementById('night_brightness_range_display').textContent = this.value">
-                                    </div>
-                                    <span class="material-symbols-outlined md-dark md-18 light-icon mt-0">brightness_high</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex-container flex-row flex-c">
-                        <button class="button button-success mb-3" type="submit">
-                            <span class="material-symbols-outlined md-dark md-24 align-middle">save</span>
-                            <span class="align-middle ps-1">Save</span>
-                        </button>
-                    </div>
-                </form>
+                You do not have access to any <strong>101Bee</strong> settings.
             </div>
         </div>
+        {% endif %}
     </div>
 {% endblock content %}

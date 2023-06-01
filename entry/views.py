@@ -1,19 +1,24 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import View
-from .models import Door, Key
+from .models import Door, Key, EntryUserAccess
 
 import requests
 
 
-class Entry(View):
+class Entry(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         template_name = 'entry.html'
         user = request.user
+
+        # Access control
+        if not EntryUserAccess.objects.filter(User=user).exists():
+            return redirect(reverse_lazy('dashboard'))
+
         keys = Key.objects.filter(User=user.id)
         doors = Door.objects.all()
-        print([d for d in doors if d not in [k.Door for k in keys]])
         context = {
             'keys': keys,
             'inaccessible_doors': [d for d in doors if d not in [k.Door for k in keys]]

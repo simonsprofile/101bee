@@ -150,3 +150,8 @@ CORS_ALLOW_HEADERS = (
     "door",
     "action",
 )
+
+# Account URLS
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'

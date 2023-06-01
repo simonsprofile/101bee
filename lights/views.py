@@ -1,10 +1,12 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import View, TemplateView
 
 from .bridge_api import Bridge
-from .models import LightsSettings
+from .models import LightsSettings, LightsUserAccess
 from .workflows import (
     Workflows,
     WorkflowException,
@@ -13,6 +15,15 @@ from .workflows import (
 
 class Lights(TemplateView):
     template_name = 'lights.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Access Control
+        user = request.user
+        if not user.is_authenticated:
+            return redirect(reverse_lazy('dashboard'))
+        if not LightsUserAccess.objects.filter(User=user).exists():
+            return redirect(reverse_lazy('dashboard'))
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -167,7 +178,7 @@ class Lights(TemplateView):
         }
 
 
-class LightsAuth(View):
+class LightsAuth(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
@@ -189,7 +200,7 @@ class LightsAuth(View):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
 
-class LightsDisconnect(View):
+class LightsDisconnect(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         s = _get_settings()
         s.bridge_user = None
@@ -199,7 +210,7 @@ class LightsDisconnect(View):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
 
-class LightsCommitChanges(View):
+class LightsCommitChanges(LoginRequiredMixin, View):
     def get(self):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
