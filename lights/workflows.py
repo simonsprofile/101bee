@@ -190,7 +190,7 @@ class Workflows:
     def create_sensor_configuration(self, delay):
         self.pluralise = 'Sensor' if len(self.sensors) == 1 else 'Sensors'
 
-        config_exists = self._config_exists()
+        config_exists = self._check_config_exists()
         if config_exists:
             return self._failure(
                 'checking compatibility with the bridge',
@@ -469,7 +469,7 @@ class Workflows:
                 {
                     'address': f"{self.room['id_v1']}/action",
                     'method': 'PUT',
-                    'body': {'scene': scene['id_v1'].replace('/scene/', '')}
+                    'body': {'scene': scene['id_v1'].replace('/scenes/', '')}
                 }
             ]
         }

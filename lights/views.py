@@ -1,14 +1,12 @@
-import copy
-import random
-import string
-
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import View, TemplateView
 
 from .bridge_api import Bridge
-from .models import LightsSettings
+from .models import LightsSettings, LightsUserAccess
 from .workflows import (
     Workflows,
     WorkflowException,
@@ -17,6 +15,15 @@ from .workflows import (
 
 class Lights(TemplateView):
     template_name = 'lights.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Access Control
+        user = request.user
+        if not user.is_authenticated:
+            return redirect(reverse_lazy('dashboard'))
+        if not LightsUserAccess.objects.filter(User=user).exists():
+            return redirect(reverse_lazy('dashboard'))
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -34,13 +41,13 @@ class Lights(TemplateView):
     def _check_bridge(self):
         s = _get_settings().__dict__
         if not s['bridge_ip'] or not s['bridge_user'] or not s['bridge_key']:
-            return {'authorised': False} | s
+            return {'authorised': False, 'settings': s}
 
         bridge = Bridge(s)
         if not bridge.is_authorised():
-            return {'authorised': False} | s
+            return {'authorised': False, 'settings': s}
 
-        return {'authorised': True} | s
+        return {'authorised': True, 'settings': s}
 
     def _get_bridge_counts(self):
         s = _get_settings().__dict__
@@ -52,7 +59,7 @@ class Lights(TemplateView):
         if not r['success']:
             error = (
                 'I was not able to find a list of rules because of the '
-                f"following  error: {r['error']}. Try re-authorising."
+                f"following  error: {r['errors']}. Try re-authorising."
             )
             messages.warning(self.request, error)
             return {'rule_count': 0}
@@ -63,7 +70,7 @@ class Lights(TemplateView):
         if not r['success']:
             error = (
                 'I was not able to find a list of lights because of the '
-                f"following  error: {r['error']}. Try re-authorising."
+                f"following  error: {r['errors']}. Try re-authorising."
             )
             messages.warning(self.request, error)
             return {'rule_count': 0}
@@ -85,7 +92,7 @@ class Lights(TemplateView):
         if not r['success']:
             error = (
                 'I was not able to find a list of rooms because of the '
-                f"following  error: {r['error']}. Try re-authorising."
+                f"following  error: {r['errors']}. Try re-authorising."
             )
             messages.warning(self.request, error)
             return {'rooms': []}
@@ -107,7 +114,7 @@ class Lights(TemplateView):
         if not r['success']:
             error = (
                 'I was not able to find a list of switches because of the '
-                f"following  error: {r['error']}. Try re-authorising."
+                f"following  error: {r['errors']}. Try re-authorising."
             )
             messages.warning(self.request, error)
             return r
@@ -133,7 +140,7 @@ class Lights(TemplateView):
         if not r['success']:
             error = (
                 'I was not able to find a list of devices because of the '
-                f"following  error: {r['error']}. Try re-authorising."
+                f"following  error: {r['errors']}. Try re-authorising."
             )
             messages.warning(self.request, error)
             return {'devices': []}
@@ -143,7 +150,7 @@ class Lights(TemplateView):
         if not r['success']:
             error = (
                 'I was not able to find a list of devices because of the '
-                f"following  error: {r['error']}. Try re-authorising."
+                f"following  error: {r['errors']}. Try re-authorising."
             )
             messages.warning(self.request, error)
             return {'devices': []}
@@ -155,17 +162,23 @@ class Lights(TemplateView):
                 x['metadata']['name'] for x in device_list
                 if x['id'] == state['owner']['rid']
             ][0]
-            devices.append({
-                'name': name,
-                'battery_level': state['power_state']['battery_level']
-            })
+            try:
+                devices.append({
+                    'name': name,
+                    'battery_level': state['power_state']['battery_level']
+                })
+            except KeyError:
+                devices.append({
+                    'name': name,
+                    'battery_level': '??'
+                })
         return {
             'devices': devices,
             'battery_warning': any(x['battery_level'] < 20 for x in devices)
         }
 
 
-class LightsAuth(View):
+class LightsAuth(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
@@ -187,7 +200,7 @@ class LightsAuth(View):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
 
-class LightsDisconnect(View):
+class LightsDisconnect(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         s = _get_settings()
         s.bridge_user = None
@@ -197,7 +210,7 @@ class LightsDisconnect(View):
         return HttpResponseRedirect(reverse_lazy('lights'))
 
 
-class LightsCommitChanges(View):
+class LightsCommitChanges(LoginRequiredMixin, View):
     def get(self):
         return HttpResponseRedirect(reverse_lazy('lights'))
 

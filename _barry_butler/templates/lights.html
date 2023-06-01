@@ -2,175 +2,353 @@
 
 {% block title %}Lights{% endblock title %}
 
-{% block lights_active %} active" aria-current="page"{% endblock lights_active %}
-
 {% block content %}
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h2>Lights</h2>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            {% if authorised %}
-                <a class="btn btn-sm btn-outline-danger" href="{% url 'lights_disconnect' %}">
-                    <span class="material-symbols-outlined md-light md-18 pe-05 pt-05 align-top">link_off</span>
-                    <span class="align-top">Disconnect your Hue Bridge</span>
-                </a>
-            {% endif %}
+    <div class="flex-container flex-col">
+        <div class="flex-container flex-row">
+            <div class="content-tile">
+                <!-- Instructions -->
+                <div class="flex-container flex-row flex-c">
+                    <div class="flex-container flex-col">
+                        <span class="material-symbols-outlined md-dark md-60 light-icon light-bg-morning">wb_twilight</span>
+                        <span class="light-icon-caption">{{ settings.morning_time }}</span>
+                    </div>
+                    <span class="material-symbols-outlined md-dark md-48 mt-4">arrow_right_alt</span>
+                    <div class="flex-container flex-col">
+                        <span class="material-symbols-outlined md-dark md-60 light-icon light-bg-day">wb_sunny</span>
+                        <span class="light-icon-caption">{{ settings.day_time }}</span>
+                    </div>
+                    <span class="material-symbols-outlined md-dark md-48 mt-4">arrow_right_alt</span>
+                    <div class="flex-container flex-col">
+                        <span class="material-symbols-outlined md-dark md-60 light-icon light-bg-evening">wb_incandescent</span>
+                        <span class="light-icon-caption">{{ settings.evening_time }}</span>
+                    </div>
+                    <span class="material-symbols-outlined md-dark md-48 mt-4">arrow_right_alt</span>
+                    <div class="flex-container flex-col">
+                        <span class="material-symbols-outlined md-dark md-60 light-icon light-bg-night">nightlight</span>
+                        <span class="light-icon-caption">{{ settings.night_time }}</span>
+                    </div>
+                </div>
+                <p>This tool automates setting up switches, sensors and buttons to support a daily schedule based on time-of-day and colour temperature. Expand the below panel for detailed instructions on how to use it.</p>
+                <div class="content-tile content-tile-dark collapsible" onclick="showHideCollapsible('instructions-collapsible')">
+                    <div class="collapsible-header" id="instructions-collapsible-header">
+                        <div class="">
+                            <span class="material-symbols-outlined md-dark md-30 align-middle">help</span>
+                        </div>
+                        <h2 class="m-1 ps-1">How to use this tool</h2>
+                        <div class="collapsible-header-icons">
+                            <div class="collapsible-header-icon">
+                                <span class="material-symbols-outlined md-dark md-24" id="instructions-collapsible-add-icon">add</span>
+                                <span class="material-symbols-outlined md-dark md-24" id="instructions-collapsible-remove-icon" style="display: none;">remove</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collapsible-content m-1 w3-animate-top" style="display: none;" id="instructions-collapsible-content">
+                        <p>The logic is based around four <strong>Daily Scenes</strong>: <i>Morning</i>, <i>Day</i>, <i>Evening</i> and <i>Night</i>. Based on the time of day, the switches, sensors or buttons will activate these standardised scenes when required. Rules will also effect a <strong>slow transition</strong> between each Daily Scene at the appropriate time.</p>
+                        <p>Setting up <i>switch(es)</i> also supports a <b>lamp circuit</b> (click once for lamps or double-click for all lights). Setting up <i>sensor(s)</i> also supports using a Phillips Hue Button to override the sensors for manual control (hold button to switch to manual, then click for on/off. Hold button to return to sensor mode).</p>
+                        <h1>How to use this tool</h1>
+                        <h3>1. Prepare Your Hue Hardware</h3>
+                        <p>Set up your Hue hardware by adding lights and rooms in the Phillips App. There are some caveats which will support this tool:</p>
+                        <ul>
+                            <li>Make sure any lights you would like as part of the <i>lamp circuit</i> have the word "Lamp" included in the name.</li>
+                            <li>Any scenes existing scenes named <i>Morning</i>, <i>Day</i>, <i>Evening</i> or <i>Night</i> will not be overwritten by this tool, so avodi those names for your custom scenes.</li>
+                            <li>You can only use standard Phillips Hue hardware. It wouldn't be too hard to adapt the code to support other brands, but I only use Phillips Hue hardware so that seems like overkill.</li>
+                        </ul>
+                        <h3>2. Setup your defaults here in the app</h3>
+                        <p>You should set what time you would like the light temperature to be changing. There is no seasonal adjustment, which is by design.</p>
+                        <p>You can also set the default colour temperature and brightness for each of these times of day. This is a global default which can be fine-tuned per room later.</p>
+                        <h3>2. Authorise Your Phillips Hue Bridge</h3>
+                        <p>This tool is only designed to work locally, and it will not auto-discover your Bridge on your network. You'll need to identify you Hue Bridge's IP address using your router and add it to the settings page. Authorising the Bridge should then be straightforward.</p>
+                        <h3>3. Initiate the Daily Scenes</h3>
+                        <p>Pick a room and use the form here to create the scenes. The script will automatically detect if there are any lamps, but will not overwrite existing scenes (based on their name).</p>
+                        <p>Room-by-room, scene-by-scene you can make adjustments in the Phillips Hue app without affecting the functionality here. (Things might get a bit messy if you rename the scene, but it's not the end of the world.)</p>
+                        <h3>4. Select your desired configuration</h3>
+                        <p>Pick a room and which hardware you would like to include using the form below. Some notes:</p>
+                        <ul>
+                            <li>You can use one or more sensors for the same room, or one or more switches.</li>
+                            <li>Override buttons for a sensor configuration are not required. If you are setting up and override button, you can only have one.</li>
+                            <li>Anything you add can also be removed using this tool. In fact it's recommended, because there are quite a few different rules and timers involved.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-12 ms-0">
-            {% if not authorised %}
-                <p>Your Hue Bridge is not currently linked to Barry Butler. Please follow these instructions to connect to your Bridge:</p>
-                <p class="muted small">N.B. This connection can stop working if there has been any network changes.</p>
-                <ol>
-                    <li>Enter your local Bridge IP below (hold on, <strong>don't</strong> click Connect yet...)</li>
-                    <li>Press the link button on the Bridge itself.</li>
-                    <li>Click Connect below.</li>
-                </ol>
-                <form class="row col-12 col-md-10 col-lg-8" method="post" action="{% url 'lights_auth' %}" >
-                    {% csrf_token %}
-                    <label for="ip" class="col-form-label">Bridge IP</label>
-                    <div class="col-7">
-                        <input class="form-control" required name="ip" id="ip" type="text" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" placeholder="192.168.0.1"{% if bridge_ip %} value="{{ bridge_ip }}"{% endif %}>
+
+        <div class="flex-container flex-row mt-3">
+            <div class="flex-container flex-col col-7">
+                {% if authorised %}
+                    <div class=" flex-container flex-row">
+                        <span class="material-symbols-outlined md-dark md-30 ms-1">rebase_edit</span>
+                        <h2 class="header-icon-text">Configure Functions</h2>
                     </div>
-                    <div class="col-auto mb-3">
-                        <button class="btn btn-success" type="submit">
-                            <span class="material-symbols-outlined md-light md-18 pe-05 pt-1 align-top">link</span>
-                            <span class="align-top">Connect</span>
-                        </button>
+                    <div class="flex-container flex-col">
+                        <div class="content-tile">
+                            <!-- Tab Header -->
+                            <div class="tab-button-set flex-container flex-row flex-space-between">
+                                <div class="tab-button tab_label tab-button-active" id="tab1_label" onClick="showTab('tab', 'tab1');">
+                                    <span class="material-symbols-outlined md-dark md-24 align-middle">routine</span>
+                                    <span class="align-middle ps-1">Daily Scenes</span>
+                                </div>
+                                <div class="tab-button tab_label" id="tab2_label" onClick="showTab('tab', 'tab2');">
+                                    <span class="material-symbols-outlined md-dark md-24 align-middle">switch</span>
+                                    <span class="align-middle ps-1">Switch(es)</span>
+                                </div>
+                                <div class="tab-button tab_label" id="tab3_label" onClick="showTab('tab', 'tab3');">
+                                    <span class="material-symbols-outlined md-dark md-24 align-middle">motion_sensor_active</span>
+                                    <span class="align-middle ps-1">Sensor(s)</span>
+                                </div>
+                            </div>
+                            <!-- Tab 1 -->
+                            <div class="tab flex-container flex-col" style="display: block;" id="tab1">
+                                <!-- Remove Scenes Form -->
+                                <div class="flex-container flex-row flex-c">
+                                    <form method="post" action="{% url 'lights_commit' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="minutes" value="5" />
+                                        <input type="hidden" name="action_type" value="remove_scenes"/>
+                                        <input type="hidden" name="room_id" value="" />
+                                        <button class="button button-outline-danger">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">delete</span>
+                                            <span class="align-middle ps-1">Remove Daily Scenes</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                <!-- Initiate Scenes Form -->
+                                <div class="flex-container flex-row flex-c flex-stretch mb-3">
+                                    <form method="post" action="{% url 'lights_commit' %}" style="flex: 1;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="minutes" value="5" />
+                                        <div class="md3-select my-5">
+                                            <select class="md3-select-text" name="room_id" onchange="changeAllRoomIds(this.value)" required>
+                                                <option disabled selected></option>
+                                                {% for room in rooms %}
+                                                    <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <span class="md3-select-highlight"></span>
+                                            <span class="md3-select-bar"></span>
+                                            <label class="md3-select-label">Select a room...</label>
+                                        </div>
+                                        <div class="flex-container flex-row flex-c">
+                                            <input type="hidden" name="action_type" value="create_scenes"/>
+                                            <button class="button button-success">
+                                                <span class="material-symbols-outlined md-dark md-24 align-middle">tips_and_updates</span>
+                                                <span class="align-middle ps-1">Initiate Daily Scenes</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Tab 2 -->
+                            <div class="tab" style="display: none;" id="tab2">
+                                <!-- Remove Switches Form -->
+                                <div class="flex-container flex-row flex-c">
+                                    <form method="post" action="{% url 'lights_commit' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="minutes" value="5" />
+                                        <input type="hidden" name="room_id" value="" />
+                                        <input type="hidden" name="action_type" value="remove_switches"/>
+                                        <button class="button button-outline-danger">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">delete</span>
+                                            <span class="align-middle ps-1">Remove Switch Configuration</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                <!-- Initiate Switches Form -->
+                                <div class="flex-container flex-row flex-c flex-stretch mb-3">
+                                    <input type="hidden" name="minutes" value="5" />
+                                    <form method="post" action="{% url 'lights_commit' %}" style="flex: 1;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="minutes" value="5" />
+                                        <div class="md3-select my-5">
+                                            <select class="md3-select-text" name="room_id" onchange="changeAllRoomIds(this.value)" required>
+                                                <option disabled selected></option>
+                                                {% for room in rooms %}
+                                                    <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <span class="md3-select-highlight"></span>
+                                            <span class="md3-select-bar"></span>
+                                            <label class="md3-select-label">Select a room...</label>
+                                        </div>
+                                        <h4 class="mx-3 mt-5 mb-2">Select one or more switch(es)...</h4>
+                                        <div class="flex-container flex-row flex-s flex-wrap mx-3 mb-6">
+                                            {% for switch in switches %}
+                                                <label class="md3-checkbox mx-3">
+                                                    <input class="" type="checkbox" name="switch_{{ switch.id }}">
+                                                    <span>{{ switch.metadata.name }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="flex-container flex-row flex-c">
+                                            <input type="hidden" name="action_type" value="configure_switches"/>
+                                            <button class="button button-success">
+                                                <span class="material-symbols-outlined md-dark md-24 align-middle">tips_and_updates</span>
+                                                <span class="align-middle ps-1">Configure Switches</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Tab 3 -->
+                            <div class="tab" style="display: none;" id="tab3">
+                                <!-- Remove Sensors Form -->
+                                <div class="flex-container flex-row flex-c">
+                                    <form method="post" action="{% url 'lights_commit' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="minutes" value="5" />
+                                        <input type="hidden" name="room_id" value="" />
+                                        <input type="hidden" name="action_type" value="remove_sensors"/>
+                                        <button class="button button-outline-danger">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">delete</span>
+                                            <span class="align-middle ps-1">Remove Sensor Configuration</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                <!-- Initiate Sensors Form -->
+                                <div class="flex-container flex-row flex-c flex-stretch mb-3">
+                                    <form method="post" action="{% url 'lights_commit' %}" style="flex: 1;">
+                                        {% csrf_token %}
+                                        <div class="md3-select my-5">
+                                            <select class="md3-select-text" name="room_id" onchange="changeAllRoomIds(this.value)" required>
+                                                <option disabled selected></option>
+                                                {% for room in rooms %}
+                                                    <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <span class="md3-select-highlight"></span>
+                                            <span class="md3-select-bar"></span>
+                                            <label class="md3-select-label">Select a room...</label>
+                                        </div>
+                                        <h4 class="mx-3 mt-5 mb-2">Select one or more sensor(s)...</h4>
+                                        <div class="flex-container flex-row flex-s flex-wrap mx-3 mb-6">
+                                            {% for sensor in sensors %}
+                                                <label class="md3-checkbox">
+                                                    <input class="" type="checkbox" name="sensor_{{ sensor.id }}">
+                                                    <span>{{ sensor.metadata.name }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                        <h4 class="mx-3 mt-5 mb-2">Select the delay after activation before the lights turn off...</h4>
+                                        <div class="md3-slider-input-container mx-3 mb-6" id="delay_range">
+                                            <label for="minutes" class="md3-slider-input-label" id="range_display">5 minutes</label>
+                                            <input type="range" class="md3-slider-input-field col-12" min="0.5" max="30" step=0.5 value=5 id="minutes" name="minutes" oninput="document.getElementById('range_display').textContent = delayToString(this.value);">
+                                        </div>
+                                        <h4 class="mx-3 mt-5 mb-2">Select a snooze button (optional)...</h4>
+                                        <div class="flex-container flex-row flex-s flex-wrap mx-3 mb-6">
+                                            {% for button in buttons %}
+                                                <label class="md3-checkbox">
+                                                    <input class="snooze_button_checkbox" type="checkbox" name="button_{{ button.id }}" onclick="unCheckOthers('snooze_button_checkbox', this.getAttribute('name'));">
+                                                    <span>{{ button.metadata.name }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="flex-container flex-row flex-c">
+                                            <input type="hidden" name="action_type" value="configure_sensors"/>
+                                            <button class="button button-success">
+                                                <span class="material-symbols-outlined md-dark md-24 align-middle">tips_and_updates</span>
+                                                <span class="align-middle ps-1">Configure Sensors</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </form>
-            {% else %}
-                <div class="mb-2 pb-2">
-                    {% for device in devices %}
-                        {% if device.battery_level < 20 %}
-                            <span class="btn btn-sm btn-secondary position-relative mb-2">
-                                {{ device.name }}
-                                <span class="badge {% if device.battery_level < 10 %}bg-danger{% else %}bg-warning{% endif %}">
-                                    {{ device.battery_level }}% Battery
-                                </span>
+                {% else %}
+                    <div class=" flex-container flex-row">
+                        <span class="material-symbols-outlined md-dark md-30 ms-1">tips_and_updates</span>
+                        <h2 class="header-icon-text">Connecting your Hue Bridge</h2>
+                    </div>
+                    <div class="flex-container flex-col">
+                        <div class="content-tile">
+                            <p>Currently you are not connected to your Hue Bridge.</p>
+                            <p>Before clicking Connect: Check the local IP address of your Bridge and <b>press the Link Button on the Bridge itself</b>.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="flex-container flex-col col-5">
+                <div class=" flex-container flex-row">
+                    <span class="material-symbols-outlined md-dark md-30 ms-1">sync</span>
+                    <h2 class="header-icon-text">Bridge Status</h2>
+                </div>
+                <div class="content-tile">
+                    <div class="flex-container flex-col flex-c">
+                        {% if authorised %}
+                            <span class="button-sm button-outline-success mt-3 mb-1">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">sync</span>
+                                <span class="align-middle ps-1">Bridge Connected</span>
                             </span>
+                            <a class="button button-danger mt-3" href="{% url 'lights_disconnect' %}">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">link_off</span>
+                                <span class="align-middle ps-1">Disconnect Your Bridge</span>
+                            </a>
+                            <h3 class="text-center light-warnings-title light-warnings my-1">Bridge Warnings</h3>
+                            {% for device in devices %}
+                                {% if device.battery_level < 20 %}
+                                    <span class="button-sm button-darker mb-1">
+                                        <span class="material-symbols-outlined md-dark md-24 align-middle">battery_{% if device.battery_level < 10 %}1{% else %}3{% endif %}_bar</span>
+                                        <span class="align-middle ps-1">{{ device.name }}</span>
+                                        <span class="badge {% if device.battery_level < 10 %}button-danger{% else %}button-warning{% endif %} ms-2">
+                                            {{ device.battery_level }}% Battery
+                                        </span>
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if rule_count > 225 %}
+                                <span class="button button-warning mb-1">
+                                    Bridge near capacity
+                                    <span class="badge button-danger ms-3">{{ rule_count }} Rules</span>
+                                </span>
+                            {% endif %}
+                            {% if bulb_count > 45 %}
+                                <span class="button button-warning mb-1">
+                                    Bridge near capacity
+                                    <span class="badge button-danger ms-3">{{ bulb_count }} Bulbs</span>
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <form method="post" action="{% url 'lights_auth' %}">
+                                {% csrf_token %}
+                                <div class="flex-container flex-col">
+                                    <span class="button-sm button-outline-danger mt-3 mb-1">
+                                        <span class="material-symbols-outlined md-dark md-24 align-middle">sync_problem</span>
+                                        <span class="align-middle ps-1">Bridge Not Connected</span>
+                                    </span>
+                                    <div class="md3-text-input-container">
+                                        <input type="text" name="ip" id="ip" class="md3-text-input-field" required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" placeholder="192.168.0.1"{% if bridge_ip %} value="{{ bridge_ip }}"{% endif %}>
+                                        <label for="ip" class="md3-text-input-label">Hue Bridge IP Address</label>
+                                    </div>
+                                    <button class="button button-success my-3" type="submit">
+                                        <span class="material-symbols-outlined md-dark md-24 align-middle">sync</span>
+                                        <span class="align-middle ps-1">Connect to Bridge</span>
+                                    </button>
+                                </div>
+                            </form>
                         {% endif %}
-                    {% endfor %}
-                    {% if rule_count > 225 %}
-                        <span class="btn btn-sm btn-warning position-relative mb-2">
-                            Bridge near capacity
-                            <span class="badge bg-danger">{{ rule_count }} Rules</span>
-                        </span>
-                    {% endif %}
-                    {% if bulb_count > 45 %}
-                        <span class="btn btn-sm btn-warning position-relative mb-2">
-                            Bridge near capacity
-                            <span class="badge bg-danger">{{ bulb_count }} Bulbs</span>
-                        </span>
-                    {% endif %}
+                    </div>
                 </div>
-                <div class="border-bottom">
-                    <h4>Setup Shortcuts</h4>
-                    <p>The below functions will help set up some pretty neat functionality for your Philips Hue lights. There's a few things that must be manually setup before it these shortcuts will work properly though:</p>
-                    <ul>
-                        <li>Add all lights to your <strong>Bridge</strong> and organise them by <strong>Room</strong>.</li>
-                        <li>If the light is a <i>lamp</i>, make sure the word <i>lamp</i> is in it's name.</li>
-                    </ul>
-                </div>
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <form method="post" action="{% url 'lights_commit' %}">
-                        {% csrf_token %}
-                        <div class="row text-center">
-                            <label for="action_type" class="col-12 col-lg-auto text-center text-lg-start py-1">I would like to</label>
-                            <div class="col-12 col-lg-auto pb-3">
-                                <div class="col-8 m-auto col-lg-auto pb-3">
-                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="action_type" id="action_type" onchange="handleSelectChange()" required>
-                                        <option disabled selected value>Select an action...</option>
-                                        <option value="create_scenes">create Daily Scenes</option>
-                                        <option value="remove_scenes">remove Daily Scenes</option>
-                                        <option value="configure_switches">configure Switch(es) for Daily Scenes</option>
-                                        <option value="remove_switches">remove Switch configuration</option>
-                                        <option value="configure_sensors">configure Sensor(s) for Daily Scenes</option>
-                                        <option value="remove_sensors">remove Sensor configuration</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <label for="room_id" class="col-12 col-lg-auto text-center text-lg-start py-1">in the</label>
-                            <div class="col-12 col-lg-auto">
-                                <div class="col-8 m-auto col-lg-auto">
-                                    <select class="form-select form-select-sm text-center col-8 m-auto" name="room_id" id="room_id" required>
-                                        <option disabled selected value>Select a room...</option>
-                                        {% for room in rooms %}
-                                            <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <button class="btn btn-sm btn-outline-success col-auto my-3 mx-auto ms-lg-3 mt-lg-0 mb-lg-3">
-                                <span class="material-symbols-outlined md-light md-24 pe-05 align-top">tips_and_updates</span>
-                                <span class="align-top">Make Changes</span>
-                            </button>
-                        </div>
-                        <div class="row col-12 col-lg-8 text-center">
-                            <div class="col d-none" id="switch_list">
-                                <h6>Select the switch(es) to use:</h6>
-                                {% for switch in switches %}
-                                    <div class="form-check form-check-inline form-switch">
-                                        <input class="form-check-input" type="checkbox" id="switch_{{ switch.id }}" name="switch_{{ switch.id }}">
-                                        <label class="form-check-label" for="switch_{{ switch.id }}">{{ switch.metadata.name }}</label>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-12 col-sm-6 d-none" id="sensor_list">
-                                <h6>Select the sensor(s) to use:</h6>
-                                {% for sensor in sensors %}
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="sensor_{{ sensor.id }}" name="sensor_{{ sensor.id }}">
-                                        <label class="form-check-label" for="sensor_{{ sensor.id }}">{{ sensor.metadata.name }}</label>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-12 col-sm-6 d-none" id="button_list">
-                                <h6>Select a snooze Button to use:</h6>
-                                {% for button in buttons %}
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="radio" id="button_{{ button.id }}" name="button" value="{{ button.id }}">
-                                        <label class="form-check-label" for="button_{{ button.id }}">{{ button.metadata.name }}</label>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-12 d-none" id="delay_range">
-                                <label for="minutes" class="form-label">Delay (<span id="range_display">5</span> minutes)</label>
-                                <input type="range" class="form-range" min="0.5" max="30" step=0.5 value=5 id="minutes" name="minutes" oninput="document.getElementById('range_display').textContent = this.value">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 {% endblock content %}
 
 {% block javascript_tail %}
     <script>
-        const handleSelectChange = () => {
-            let select = document.getElementById('action_type');
-            let switchList = document.getElementById('switch_list');
-            let sensorList = document.getElementById('sensor_list');
-            let buttonList = document.getElementById('button_list');
-            let delayRange = document.getElementById('delay_range');
-
-            if (select.value == 'configure_switches') {
-                switchList.classList.remove('d-none');
-                sensorList.classList.add('d-none');
-                buttonList.classList.add('d-none');
-                delayRange.classList.add('d-none');
-            } else if (select.value == 'configure_sensors') {
-                switchList.classList.add('d-none');
-                sensorList.classList.remove('d-none');
-                buttonList.classList.remove('d-none');
-                delayRange.classList.remove('d-none');
-            } else {
-                switchList.classList.add('d-none');
-                sensorList.classList.add('d-none');
-                buttonList.classList.add('d-none');
-                delayRange.classList.add('d-none');
-            }
+    const changeAllRoomIds = (value) => {
+        const room_id_inputs = document.getElementsByName('room_id');
+        for (let e of room_id_inputs) {
+            e.value = value;
         }
+    }
+
+    const delayToString = (delay) => {
+        const m = Math.floor(delay);
+        let s = '';
+        if (delay % 1 > 0) {
+            s = ' 30 seconds';
+        }
+        return `${m} minutes${s}`;
+    }
     </script>
 {% endblock javascript_tail %}

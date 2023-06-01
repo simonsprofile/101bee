@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.contrib.auth.models import User
 
 
 def mirek_from_kelvin(k):
@@ -105,3 +106,16 @@ class LightsSettings(models.Model):
     class Meta:
         verbose_name = 'Light Settings'
         verbose_name_plural = 'Light Settings'
+
+
+class LightsUserAccess(models.Model):
+    user = models.ForeignKey(
+        User,
+        name='User',
+        blank=False,
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'User Access Grant'
