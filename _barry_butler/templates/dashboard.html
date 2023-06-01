@@ -3,8 +3,32 @@
 {% block title %}Dashboard{% endblock title %}
 
 {% block content %}
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h2>Dashboard</h2>
+    <h2>Tabs</h2>
+    <div class="flex-container flex-row flex-stretch flex-wrap">
+        <div class="content-tile min-md">
+            <div class="tab-button-set flex-container flex-row">
+                <div class="tab-button tab_label tab-button-active" id="tab1_label" onClick="showTab('tab', 'tab1');">Long Title for Tab 1</div>
+                <div class="tab-button tab_label" id="tab2_label" onClick="showTab('tab', 'tab2');">Tab 2</div>
+            </div>
+            <div class="tab" style="display: block;" id="tab1">
+                <p>Here in tab 1, I'll explain that the <b>Dashboard</b> is currently just a collection of components to build a dashboard from later.</p>
+            </div>
+            <div class="tab" style="display: none;" id="tab2">
+                <p>This is tab 2. That is all.</p>
+            </div>
+        </div>
     </div>
-    <div><p>Hi, welcome. Only the <strong>Lights</strong> part of this thing does anything. By the way.</p></div>
+    <h2>Flex Boxes</h2>
+    <div class="flex-container flex-col">
+        <div class="flex-container flex-row flex-stretch flex-wrap">
+            <div class="content-tile min-md">This is the first column, in which you will find this content.</div>
+            <div class="content-tile min-sm">This is the second column, in which you will find this content.</div>
+        </div>
+        <div class="flex-container flex-row flex-stretch flex-wrap">
+            <div class="content-tile">This is the third column, in which you will find this content.</div>
+            <div class="content-tile">This is the fourth column, in which you will find this content.</div>
+            <div class="content-tile">This is the fifth column, in which you will find this content.</div>
+            <div class="content-tile">This is the sixth column, in which you will find this content.</div>
+        </div>
+    </div>
 {% endblock content %}

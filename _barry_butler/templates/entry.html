@@ -3,8 +3,62 @@
 {% block title %}Entry{% endblock title %}
 
 {% block content %}
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h2>Entry</h2>
+    <div class="flex-container flex-column flex-stretch flex-wrap">
+        {% if doors|length %}
+            {% for door in doors %}
+                    <h2 class="col-12">
+                        {{ door.name }}
+                        {% if door.status == 'open' %}
+                            <span class="badge button-danger mx-3 pb-2">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_open</span>
+                                Open
+                            </span>
+                        {% elif door.status == 'closed' %}
+                            <span class="badge button-success mx-3 pb-2">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_front</span>
+                                Closed
+                            </span>
+                        {% else %}
+                            <span class="badge button-warning mx-3 pb-2">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">link_off</span>
+                                Unknown
+                            </span>
+                        {% endif %}
+                    </h2>
+                    <div class="content-tile col-12">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="door" value="{{ door.pk }}">
+                            <input type="hidden" name="action" value="open">
+                            <button type="submit" class="button button-success px-4 mb-3" id="garage_open">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_open</span>
+                                <span class="align-middle ps-1">Open</span>
+                            </button>
+                        </form>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="door" value="{{ door.pk }}">
+                            <input type="hidden" name="action" value="close">
+                            <button type="submit" class="button button-danger px-4 mb-3">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_front</span>
+                                <span class="align-middle ps-1">Close</span>
+                            </button>
+                        </form>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="door" value="{{ door.pk }}">
+                            <input type="hidden" name="action" value="stop">
+                            <button type="submit" class="button button-warning px-4 mb-3">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">report</span>
+                                <span class="align-middle ps-1">Stop</span>
+                            </button>
+                        </form>
+                    </div>
+            {% endfor %}
+        {% else %}
+            <div class="content-tile">
+                At this time, there is nothing here. It is intended to provide access for some smart locks later.
+            </div>
+        {% endif %}
     </div>
-    <div><p>There's no way to gain entry to the house through this page yet.</p></div>
 {% endblock content %}
