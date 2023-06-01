@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Door(models.Model):
     name = models.CharField(
         'Door Name',
@@ -25,18 +26,21 @@ class Door(models.Model):
         null=False
     )
 
+
 class Key(models.Model):
     door = models.ForeignKey(
         Door,
         name="Door",
         blank=False,
-        null=False
+        null=False,
+        on_delete=models.CASCADE
     )
     user = models.ForeignKey(
         User,
         name="User",
         blank=False,
-        null=False
+        null=False,
+        on_delete=models.CASCADE
     )
     recycle = models.BooleanField(
         'Recycle After Use',
