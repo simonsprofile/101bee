@@ -3,62 +3,141 @@
 {% block title %}Entry{% endblock title %}
 
 {% block content %}
-    <div class="flex-container flex-column flex-stretch flex-wrap">
-        {% if doors|length %}
-            {% for door in doors %}
-                    <h2 class="col-12">
-                        {{ door.name }}
-                        {% if door.status == 'open' %}
-                            <span class="badge button-danger mx-3 pb-2">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_open</span>
-                                Open
-                            </span>
-                        {% elif door.status == 'closed' %}
-                            <span class="badge button-success mx-3 pb-2">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_front</span>
-                                Closed
-                            </span>
-                        {% else %}
-                            <span class="badge button-warning mx-3 pb-2">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">link_off</span>
-                                Unknown
-                            </span>
-                        {% endif %}
-                    </h2>
-                    <div class="content-tile col-12">
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="door" value="{{ door.pk }}">
-                            <input type="hidden" name="action" value="open">
-                            <button type="submit" class="button button-success px-4 mb-3" id="garage_open">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_open</span>
-                                <span class="align-middle ps-1">Open</span>
-                            </button>
-                        </form>
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="door" value="{{ door.pk }}">
-                            <input type="hidden" name="action" value="close">
-                            <button type="submit" class="button button-danger px-4 mb-3">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">door_front</span>
-                                <span class="align-middle ps-1">Close</span>
-                            </button>
-                        </form>
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="door" value="{{ door.pk }}">
-                            <input type="hidden" name="action" value="stop">
-                            <button type="submit" class="button button-warning px-4 mb-3">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">report</span>
-                                <span class="align-middle ps-1">Stop</span>
-                            </button>
-                        </form>
+    <div class="flex-container flex-col">
+        {% if keys|length %}
+            <div class="flex-container flex-row pt-2">
+                <span class="material-symbols-outlined md-dark md-30 ms-1">key</span>
+                <h1 class="header-icon-text">Your Keys</h1>
+            </div>
+            {% for key in keys %}
+                <div class="flex-container flex-row">
+                    <div class="content-tile col-12 mb-3">
+                        <div class="flex-container flex-row flex-wrap">
+                            <div class="flex-container flex-col">
+                                <h2 class="mb-0 pb-0">{{ key.Door.name }}</h2>
+                                {% if key.Door.status == 'open' %}
+                                    <span class="h3 badge button-danger mb-3 mt-0">
+                                        <span class="material-symbols-outlined md-dark md-18 align-middle">door_open</span>
+                                        Currently Open
+                                    </span>
+                                {% elif key.Door.status == 'closed' %}
+                                    <span class="badge button-success mb-3 mt-0">
+                                        <span class="material-symbols-outlined md-dark md-18 align-middle">door_front</span>
+                                        Currently Closed
+                                    </span>
+                                {% elif key.Door.status == 'locked' %}
+                                    <span class="badge button-success mb-3 mt-0">
+                                        <span class="material-symbols-outlined md-dark md-18 align-middle">lock</span>
+                                        Currently Locked
+                                    </span>
+                                {% elif key.Door.status == 'unlocked' %}
+                                    <span class="badge button-success mb-3 mt-0">
+                                        <span class="material-symbols-outlined md-dark md-18 align-middle">lock_open</span>
+                                        Currently Unlocked
+                                    </span>
+                                {% else %}
+                                    <span class="badge button-warning mb-3 mt-0">
+                                        <span class="material-symbols-outlined md-dark md-18 align-middle">link_off</span>
+                                        Status Unknown
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex-container flex-row flex-fill flex-e pt-3">
+                                {% if key.Door.type == 'lock' %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="door" value="{{ key.Door.pk }}">
+                                        <input type="hidden" name="action" value="unlock">
+                                        <button type="submit" class="button button-sm button-success px-4 mb-3">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">lock_open</span>
+                                            <span class="align-middle ps-1">Unlock</span>
+                                        </button>
+                                    </form>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="door" value="{{ key.Door.pk }}">
+                                        <input type="hidden" name="action" value="lock">
+                                        <button type="submit" class="button button-sm button-danger px-4 mb-3">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">lock</span>
+                                            <span class="align-middle ps-1">Lock</span>
+                                        </button>
+                                    </form>
+                                {% elif key.Door.type == 'powered' %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="door" value="{{ key.Door.pk }}">
+                                        <input type="hidden" name="action" value="open">
+                                        <button type="submit" class="button button-sm button-success px-4 mb-3">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">door_open</span>
+                                            <span class="align-middle ps-1">Open</span>
+                                        </button>
+                                    </form>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="door" value="{{ key.Door.pk }}">
+                                        <input type="hidden" name="action" value="close">
+                                        <button type="submit" class="button button-sm button-danger px-4 mb-3">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">door_front</span>
+                                            <span class="align-middle ps-1">Close</span>
+                                        </button>
+                                    </form>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="door" value="{{ key.Door.pk }}">
+                                        <input type="hidden" name="action" value="stop">
+                                        <button type="submit" class="button button-sm button-warning px-4 mb-3">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">report</span>
+                                            <span class="align-middle ps-1">Stop</span>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
+                </div>
             {% endfor %}
         {% else %}
-            <div class="content-tile">
-                At this time, there is nothing here. It is intended to provide access for some smart locks later.
+            <div class="content-tile col-12">
+                You do not have keys to <strong>101Bee</strong>.
             </div>
+        {% endif %}
+        {% if inaccessible_doors|length %}
+            <div class="flex-container flex-row pt-4">
+                <span class="material-symbols-outlined md-dark md-30 ms-1">key_off</span>
+                <h1 class="header-icon-text">Unsecured Controls</h1>
+            </div>
+            {% for door in inaccessible_doors %}
+                <div class="flex-container flex-row">
+                    <div class="content-tile col-12 mb-3">
+                        <div class="flex-container flex-row flex-wrap">
+                            <h2>{{ door.name }}</h2>
+                            <div class="flex-container flex-row flex-fill flex-e pt-3">
+                                {% if door.type == 'lock' %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="door" value="{{ door.pk }}">
+                                        <input type="hidden" name="action" value="lock">
+                                        <button type="submit" class="button button-sm button-danger px-4 mb-3">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">lock</span>
+                                            <span class="align-middle ps-1">Lock</span>
+                                        </button>
+                                    </form>
+                                {% elif door.type == 'powered' %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="door" value="{{ door.pk }}">
+                                        <input type="hidden" name="action" value="close">
+                                        <button type="submit" class="button button-sm button-danger px-4 mb-3">
+                                            <span class="material-symbols-outlined md-dark md-24 align-middle">door_front</span>
+                                            <span class="align-middle ps-1">Close</span>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         {% endif %}
     </div>
 {% endblock content %}

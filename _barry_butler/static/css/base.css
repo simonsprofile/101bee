@@ -115,6 +115,7 @@
 .mt-5 { margin-top: 2em !important; }
 .mt-6 { margin-top: 3em !important; }
 
+.mb-0 { margin-bottom: 0 !important; }
 .mb-1 { margin-bottom: 0.2em; }
 .mb-2 { margin-bottom: 0.5em; }
 .mb-3 { margin-bottom: 1em; }
@@ -146,6 +147,7 @@
 .flex-wrap > .max-lg { max-width: 496px; }
 .flex-wrap > .max-xl { max-width: 600px; }
 .flex-wrap > .max-xxl { max-width: 700px; }
+.flex-fill { flex: 1 1 auto !important; }
 
 /* 12-Columns */
 .col-auto {
@@ -427,6 +429,8 @@ button {
     border-radius: 0.3em;
     padding: 0.3em 0.5em 0.3em 0.5em;
     font-size: 0.7em;
+    font-weight: bold;
+    text-align: center;
 }
 
 .light-warnings:last-child {

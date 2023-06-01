@@ -17,7 +17,10 @@ SECRET_KEY = ENV('DJANGO__SECRET_KEY', None)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['88c1-92-40-217-16.ngrok-free.app']
+ALLOWED_HOSTS = [
+    'localhost',
+    '88c1-92-40-217-16.ngrok-free.app',
+]
 
 # Applications #
 INSTALLED_APPS = [

@@ -25,6 +25,16 @@ class Door(models.Model):
         blank=False,
         null=False
     )
+    type = models.CharField(
+        'Type',
+        max_length=64,
+        choices=(('powered', 'Powered'), ('lock', 'Lock'), ),
+        blank=False,
+        null=False,
+    )
+
+    def __str__(self):
+        return self.name
 
 
 class Key(models.Model):
@@ -48,3 +58,6 @@ class Key(models.Model):
         blank=False,
         null=False
     )
+
+    def __str__(self):
+        return f"{self.Door}: {self.User}"
