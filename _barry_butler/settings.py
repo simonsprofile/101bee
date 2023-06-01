@@ -1,4 +1,5 @@
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
 import environ
 from django.contrib.messages import constants as messages
@@ -16,7 +17,7 @@ SECRET_KEY = ENV('DJANGO__SECRET_KEY', None)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['88c1-92-40-217-16.ngrok-free.app']
 
 # Applications #
 INSTALLED_APPS = [
@@ -35,9 +36,11 @@ INSTALLED_APPS = [
     'entry',
 
     # Third Party Apps
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -135,3 +138,12 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
  }
+
+# CORS Settings
+CORS_ALLOWED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS]
+CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS]
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "door",
+    "action",
+)
