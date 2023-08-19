@@ -211,12 +211,7 @@ class Workflows:
             record = self._post(
                 f"posting Occupancy Detected 1 rule",
                 'rules',
-                self.payload__occupancy_1(sensor)
-            )
-            record = self._post(
-                f"posting Occupancy Detected 2 rule",
-                'rules',
-                self.payload__occupancy_2(sensor)
+                self.payload__occupancy(sensor)
             )
             record = self._post(
                 f"posting Dim (No Motion) rule",
@@ -228,7 +223,7 @@ class Workflows:
                 'rules',
                 self.payload__off_no_motion(sensor)
             )
-            if self.button:
+            if len(self.button):
                 record = self._post(
                     f" posting Sensor Snooze rule",
                     'rules',
@@ -244,6 +239,16 @@ class Workflows:
                     'rules',
                     self.payload__button_off()
                 )
+                record = self._post(
+                    f" posting Override Button On rule",
+                    'rules',
+                    self.payload__override_button_on()
+                )
+                record = self._post(
+                    f" posting Override Button Dim (No Motion) rule",
+                    'rules',
+                    self.payload__override_dim_no_motion(sensor, delay)
+                )
 
             for scene_name in self.scene_names:
                 record = self._post(
@@ -251,7 +256,7 @@ class Workflows:
                     'rules',
                     self.payload__sensor_on(scene_name)
                 )
-                if self.button:
+                if len(self.button):
                     record = self._post(
                         f" posting {scene_name} Button On rule",
                         'rules',
@@ -600,49 +605,15 @@ class Workflows:
             )
         }
 
-    def payload__occupancy_1(self, sensor):
+    def payload__occupancy(self, sensor):
         return {
-            "name": f"{self.room_name_min}Motion1",
+            "name": f"{self.room_name_min}Motion",
             "recycle": False,
             "conditions": [
                 {
                     "address": f"{self.light_level_sensor['id_v1']}/state/dark",
                     "operator": "eq",
                     "value": "true"
-                },
-                {
-                    "address": f"{self.occupancy_status['id_v1']}/state/status",
-                    "operator": "eq",
-                    "value": "0"
-                },
-                {
-                    "address": f"{sensor['id_v1']}/state/presence",
-                    "operator": "dx"
-                },
-                {
-                    "address": f"{sensor['id_v1']}/state/presence",
-                    "operator": "eq",
-                    "value": "true"
-                }
-            ],
-            "actions": [
-                {
-                    "address": f"{self.occupancy_status['id_v1']}/state",
-                    "method": "PUT",
-                    "body": {"status": 1}
-                }
-            ]
-        }
-
-    def payload__occupancy_2(self, sensor):
-        return {
-            "name": f"{self.room_name_min}Motion2",
-            "recycle": False,
-            "conditions": [
-                {
-                    "address": f"{self.occupancy_status['id_v1']}/state/status",
-                    "operator": "gt",
-                    "value": "0"
                 },
                 {
                     "address": f"{self.occupancy_status['id_v1']}/state/status",
@@ -664,8 +635,7 @@ class Workflows:
                     "address": f"{self.occupancy_status['id_v1']}/state",
                     "method": "PUT",
                     "body": {"status": 1}
-                },
-
+                }
             ]
         }
 
@@ -681,8 +651,8 @@ class Workflows:
                 },
                 {
                     "address": f"{self.occupancy_status['id_v1']}/state/status",
-                    "operator": "lt",
-                    "value": "3"
+                    "operator": "eq",
+                    "value": "1"
                 },
                 {
                     "address": f"{sensor['id_v1']}/state/presence",
@@ -726,11 +696,6 @@ class Workflows:
                     ),
                     "operator": "ddx",
                     "value": "PT00:00:20"
-                },
-                {
-                    "address": f"{sensor['id_v1']}/state/presence",
-                    "operator": "eq",
-                    "value": "false"
                 }
             ],
             "actions": [
@@ -791,13 +756,13 @@ class Workflows:
                     "value": "3"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "dx"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "eq",
-                    "value": "1010"
+                    "value": "1004"
                 }
             ],
             "actions": [
@@ -825,13 +790,13 @@ class Workflows:
                     "value": "3"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "dx"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "eq",
-                    "value": "1010"
+                    "value": "1004"
                 }
             ],
             "actions": [
@@ -873,11 +838,11 @@ class Workflows:
                     "value": "false"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "dx"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "eq",
                     "value": "1000"
                 },
@@ -912,11 +877,11 @@ class Workflows:
                     "value": "true"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "dx"
                 },
                 {
-                    "address": f"{self.button['id_v1']}/state/buttonevent",
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
                     "operator": "eq",
                     "value": "1000"
                 }
@@ -926,6 +891,76 @@ class Workflows:
                     "address": f"{self.room['id_v1']}/action",
                     "method": "PUT",
                     "body": {"on": False}
+                }
+            ]
+        }
+
+    def payload__override_button_on(self):
+        return {
+            "name": f"{self.room_name_min}OvrBtnOn",
+            "recycle": False,
+            "conditions": [
+                {
+                    "address": f"{self.occupancy_status['id_v1']}/state/status",
+                    "operator": "lt",
+                    "value": "3"
+                },
+                {
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
+                    "operator": "dx"
+                },
+                {
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
+                    "operator": "eq",
+                    "value": "1000"
+                }
+            ],
+            "actions": [
+                {
+                    "address": f"{self.occupancy_status['id_v1']}/state",
+                    "method": "PUT",
+                    "body": {"status": 1}
+                }
+            ]
+        }
+
+    def payload__override_dim_no_motion(self, sensor, delay):
+        return {
+            "name": f"{self.room_name_min}OvrDimNoMotion",
+            "recycle": False,
+            "conditions": [
+                {
+                    "address": f"{self.room['id_v1']}/state/any_on",
+                    "operator": "eq",
+                    "value": "true"
+                },
+                {
+                    "address": f"{self.occupancy_status['id_v1']}/state/status",
+                    "operator": "eq",
+                    "value": "1"
+                },
+                {
+                    "address": f"{sensor['id_v1']}/state/presence",
+                    "operator": "eq",
+                    "value": "false"
+                },
+                {
+                    "address": f"{self.button[0]['id_v1']}/state/buttonevent",
+                    "operator": "ddx",
+                    "value": self._build_duration_from_delay(delay)
+                },
+
+            ],
+            "actions": [
+                {
+                    "address": f"{self.occupancy_status['id_v1']}/state",
+                    "method": "PUT",
+                    "body": {"status": 2}
+                },
+                {
+                    "address": f"{self.room['id_v1']}/action",
+                    "method": "PUT",
+                    "body": {"bri_inc": -128, "transitiontime": 20}
                 }
             ]
         }
