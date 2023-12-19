@@ -172,6 +172,10 @@ class Lights(TemplateView):
                     'name': name,
                     'battery_level': '??'
                 })
+
+        for x in devices:
+            if x['battery_level'] == '??':
+                x['battery_level'] = 20
         return {
             'devices': devices,
             'battery_warning': any(x['battery_level'] < 20 for x in devices)
