@@ -1,5 +1,5 @@
 """
-WSGI config for barry_butler_v7 project.
+WSGI config for 101bee project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barry_butler_v7.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '_101bee.settings')
 
 application = get_wsgi_application()

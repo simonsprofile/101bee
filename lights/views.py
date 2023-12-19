@@ -172,6 +172,10 @@ class Lights(TemplateView):
                     'name': name,
                     'battery_level': '??'
                 })
+
+        for x in devices:
+            if x['battery_level'] == '??':
+                x['battery_level'] = 20
         return {
             'devices': devices,
             'battery_warning': any(x['battery_level'] < 20 for x in devices)
@@ -229,7 +233,17 @@ class LightsCommitChanges(LoginRequiredMixin, View):
             return HttpResponseRedirect(reverse_lazy('lights'))
         room = r['record']
 
-        devices = {'button': None}
+        devices = {}
+        r = self._get_devices('button')
+        if not r['success']:
+            error = (
+                'Sorry, I was unable to find the button information because of '
+                f"the following error. Try re-authorising: {r['errors']}"
+            )
+            messages.warning(request, error)
+            return HttpResponseRedirect(reverse_lazy('lights'))
+        devices['button'] = r['records']
+
         r = self._get_devices('switch')
         if not r['success']:
             error = (
