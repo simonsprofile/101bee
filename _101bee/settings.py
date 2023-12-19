@@ -6,7 +6,7 @@ from django.contrib.messages import constants as messages
 
 ENV = environ.Env()
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent
-APPS_DIR = ROOT_DIR / "_barry_butler"
+APPS_DIR = ROOT_DIR / "_101bee"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Local Apps
-    '_barry_butler.lib',
+    '_101bee.lib',
     'dashboard',
     'lights',
     'entry',
@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = '_barry_butler.urls'
+ROOT_URLCONF = '_101bee.urls'
 
 TEMPLATES = [
     {
@@ -70,7 +70,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = '_barry_butler.wsgi.application'
+WSGI_APPLICATION = '_101bee.wsgi.application'
 
 
 # Database #
