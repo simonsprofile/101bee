@@ -17,9 +17,7 @@ SECRET_KEY = ENV('DJANGO__SECRET_KEY', None)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '*',
-]
+ALLOWED_HOSTS = ENV('DJANGO__ALLOWED_HOSTS', None).split(',')
 
 # Applications #
 INSTALLED_APPS = [
