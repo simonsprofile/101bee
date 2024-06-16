@@ -88,6 +88,24 @@ class Lights(TemplateView):
             return {'rooms': []}
 
         bridge = Bridge(s)
+        r = bridge.search('resourcelinks')
+        if not r['success']:
+            error = (
+                'I was not able to find a which rooms have existing '
+                'configurations because of the following error: '
+                f"{r['errors']}. Try re-authorising."
+            )
+            messages.warning(self.request, error)
+            return {'rooms': rooms}
+
+        resource_links = [{**room, "id": k} for k, room in r['records'].items()]
+
+        rooms_with_sensors = [
+            x['name'].replace('Sensor', '') for x in resource_links
+            if x['description'] == 'Barry Butler Sensor Configuration.'
+        ]
+
+
         r = bridge.search('room')
         if not r['success']:
             error = (
@@ -96,13 +114,18 @@ class Lights(TemplateView):
             )
             messages.warning(self.request, error)
             return {'rooms': []}
+        rooms = [
+            {
+                'id': x['id'],
+                'name': x['metadata']['name'],
+                'sensors': True
+                    if x['metadata']['name'] in rooms_with_sensors
+                    else False
+            }
+            for x in r['records']
+        ]
 
-        return {
-            'rooms': [
-                {'id': x['id'], 'name': x['metadata']['name']}
-                for x in r['records']
-            ]
-        }
+        return {'rooms': rooms}
 
     def _get_switches_and_sensors(self, devices):
         s = _get_settings().__dict__
@@ -232,7 +255,6 @@ class LightsCommitChanges(LoginRequiredMixin, View):
             messages.warning(request, error)
             return HttpResponseRedirect(reverse_lazy('lights'))
         room = r['record']
-
         devices = {}
         r = self._get_devices('button')
         if not r['success']:
@@ -322,6 +344,13 @@ class LightsCommitChanges(LoginRequiredMixin, View):
         elif request.POST['action_type'] == 'remove_sensors':
             try:
                 bridge_secretary.remove_sensor_configuration()
+            except WorkflowException as e:
+                messages.error(request, e)
+        elif request.POST['action_type'] == 'maintenance_mode':
+            try:
+                bridge_secretary.enable_disable_maintenance_mode(
+                    request.POST['maintenance_action']
+                )
             except WorkflowException as e:
                 messages.error(request, e)
         return HttpResponseRedirect(reverse_lazy('lights'))

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'dashboard',
     'lights',
     'entry',
+    'heating',
 
     # Third Party Apps
     'corsheaders',
@@ -106,11 +107,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-gb'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/London'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static Files #

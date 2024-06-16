@@ -1,6 +1,7 @@
 from django import template
 from lights.models import LightsUserAccess
 from entry.models import EntryUserAccess
+from heating.models import HeatingUserAccess
 
 
 register = template.Library()
@@ -21,5 +22,8 @@ def nav_list(context):
             nav_items.append(
                 {'title': 'Entry', 'icon': 'door_open', 'url': 'entry'}
             )
-
+        if HeatingUserAccess.objects.filter(User=user).exists():
+            nav_items.append(
+                {'title': 'Heating', 'icon': 'mode_heat', 'url': 'heating'}
+            )
     return nav_items

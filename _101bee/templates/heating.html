@@ -1,0 +1,50 @@
+{% extends '_base.html' %}
+
+{% block title %}Heating{% endblock title %}
+
+{% block content %}
+    <h2>Status</h2>
+    <div class="flex-container flex-col">
+        <div class="flex-container flex-row">
+            <div class="content-tile flex-col col-7">
+                {% if daikin_authenticated %}
+                    <h3>Live Temperatures</h3>
+                    {% if temps %}
+                        <p>Room: {{ temps.room }}ºC (Setpoint: {{ temps.room_setpoint }}ºC)</p>
+                        <p>Hot Water: {{ temps.hot_water }}ºC (Setpoint: {{ temps.tank_setpoint }}ºC)</p>
+                        <p>Flow: {{ temps.flow }}ºC</p>
+                        <p>Outdoor: {{ temps.outdoor }}ºC</p>
+                    {% else %}
+                        <p>Error collecting data from Daikin's servers...</p>
+                    {% endif %}
+                {% else %}
+                    <p>Daikin is not connected.</p>
+                {% endif %}
+            </div>
+            <div class="content-tile flex-col col-5">
+                <div class="flex-container flex-col flex-c">
+                    {% if daikin_authenticated %}
+                            <span class="button-sm button-outline-success mt-3 mb-1">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">check</span>
+                                <span class="align-middle ps-1">Daikin is Connected</span>
+                            </span>
+                            <a class="button button-danger mt-3" href="{% url 'daikin_disconnect' %}">
+                                <span class="material-symbols-outlined md-dark md-24 align-middle">sync_disabled</span>
+                                <span class="align-middle ps-1">Disconnect Daikin</span>
+                            </a>
+                        </div>
+                    {% else %}
+                        <span class="button-sm button-outline-danger mt-3 mb-1">
+                            <span class="material-symbols-outlined md-dark md-24 align-middle">close</span>
+                            <span class="align-middle ps-1">Daikin is not Connected</span>
+                        </span>
+                        <a class="button button-success mt-3" href="{{ daikin_auth_url }}">
+                            <span class="material-symbols-outlined md-dark md-24 align-middle">sync</span>
+                            <span class="align-middle ps-1">Connect to Daikin Now</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

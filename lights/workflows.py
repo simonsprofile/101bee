@@ -280,6 +280,39 @@ class Workflows:
         self._delete_records_in(config)
         return self._remove_success()
 
+    def enable_disable_maintenance_mode(self, action):
+        self.pluralise = 'Sensor Configuration'
+        config = self._get_resourcelink('Sensors')
+        if not config:
+            config = self._get_resourcelink('Sensor')
+            if not config:
+                message = (
+                    "I couldn't find a sensor configuration for the "
+                    f"{self.room_name}."
+                )
+                messages.warning(self.request, message)
+                return
+        sensor_id = next(
+            iter(
+                [
+                    x.replace('/sensors/', '') for x in config['links']
+                    if '/sensors/' in x
+                ]
+            )
+        )
+        r = self.bridge.put_v1(
+            'sensors',
+            sensor_id,
+            self.payload__maintenance_mode(action)
+        )
+        if not r['success']:
+            self._failure(
+                f"{action[0:len(action)-1]}ing "
+                f"maintenance mode in the {self.room_name}",
+                r['errors']
+            )
+        return self._maintenance_success(action)
+
     # Handle failure
     def _failure(self, task, message):
         error = (
@@ -317,6 +350,11 @@ class Workflows:
 
     def _remove_success(self):
         message = f"{self.pluralise} removed for the {self.room_name}."
+        messages.success(self.request, message)
+        return
+
+    def _maintenance_success(self, action):
+        message = f"Maintenance Mode was {action}d in the the {self.room_name}."
         messages.success(self.request, message)
         return
 
@@ -964,6 +1002,10 @@ class Workflows:
                 }
             ]
         }
+
+    # For Maintenance Mode
+    def payload__maintenance_mode(self, action):
+        return {'state': {'status': 0 if action == 'disable' else 3}}
 
     # Resource Link
     def payload__resource_link(self):

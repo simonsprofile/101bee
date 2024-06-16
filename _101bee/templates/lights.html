@@ -330,6 +330,46 @@
                 </div>
             </div>
         </div>
+
+        <div class=" flex-container flex-row">
+            <span class="material-symbols-outlined md-dark md-30 ms-1">engineering</span>
+            <h2 class="header-icon-text">Maintenance Mode</h2>
+        </div>
+
+        <div class="flex-container flex-row col-12">
+            <div class="content-tile">
+                <form method="post" action="{% url 'lights_commit' %}">
+                    {% csrf_token %}
+                    <div class="flex-container flex-col">
+                        <div class="md3-select my-5">
+                            <select class="md3-select-text" name="room_id" required>
+                                <option disabled selected></option>
+                                {% for room in rooms %}
+                                    {% if room.sensors %}
+                                        <option value="{{ room.id }}" label="{{ room.name }}">{{ room.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <span class="md3-select-highlight"></span>
+                            <span class="md3-select-bar"></span>
+                            <label class="md3-select-label">Select a room...</label>
+                        </div>
+                        <input type="hidden" name="action_type" value="maintenance_mode">
+                        <input type="hidden" name="minutes" value="0">
+                    </div>
+                    <div class="flex-container flex-row">
+                        <button class="button button-success my-3" type="submit" name="maintenance_action" value="enable">
+                            <span class="material-symbols-outlined md-dark md-24 align-middle">report</span>
+                            <span class="align-middle ps-1">Enable</span>
+                        </button>
+                        <button class="button button-danger my-3" type="submit" name="maintenance_action" value="disable">
+                            <span class="material-symbols-outlined md-dark md-24 align-middle">report_off</span>
+                            <span class="align-middle ps-1">Disable</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 {% endblock content %}
 

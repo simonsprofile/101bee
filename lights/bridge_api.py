@@ -218,7 +218,7 @@ class Bridge:
 
         results = sum([list(x.keys()) for x in data], [])
         if 'success' in results:
-            r = self.get(endpoint, data[0]['success']['id'])
+            r = self.get(endpoint, data[0]['success'])
             if not r['success']:
                 return {
                     'success': False,
