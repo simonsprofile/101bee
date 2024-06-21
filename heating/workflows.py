@@ -26,7 +26,8 @@ class Heating:
         if not self.daikin_error:
             heat_pump_status.room_setpoint = self.daikin_temps['room_setpoint']
             heat_pump_status.tank_setpoint = self.daikin_temps['tank_setpoint']
-            heat_pump_status.reported_flow_temperature = self.daikin_temps['flow']
+            #heat_pump_status.reported_flow_temperature = self.daikin_temps['flow']
+            heat_pump_status.return_temperature = self.daikin_temps['flow']
 
         # Collect data from climate sensors
         sensors = ClimateSensor.objects.all()
@@ -58,6 +59,7 @@ class Heating:
                         temperature=self.daikin_temps['outdoor']
                     ).save()
             elif sensor.type == 'esp8266_heat_pump':
+                """
                 r = requests.get(f"http://{sensor.ip_address}/")
                 try:
                     r = r.json()
@@ -75,6 +77,8 @@ class Heating:
                         cupboard_climate_record.save()
                 except Exception as e:
                     print(e)
+                """
+                pass
             elif sensor.type == 'esp8266_room':
                 pass
         heat_pump_status.save()
