@@ -1,11 +1,14 @@
-from .daikin_api import DaikinApi
-from lights.bridge_api import Bridge
-from lights.models import LightsSettings
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 from heating.models import (ClimateSensor,
                             HeatPumpStatusRecord,
                             ClimateSensorRecord)
+from lights.bridge_api import Bridge
+from lights.models import LightsSettings
 from scribe.models import WorkflowError
-import requests
+from .daikin_api import DaikinApi
 
 
 class Heating:
@@ -63,7 +66,12 @@ class Heating:
                     ).save()
             elif sensor.type == 'esp8266_heat_pump':
                 try:
-                    r = requests.get(f"http://{sensor.ip_address}/", timeout=5)
+                    session = requests.Session()
+                    retry = Retry(connect=5, backoff_factor=0.5)
+                    adapter = HTTPAdapter(max_retries=retry)
+                    session.mount('http://', adapter)
+                    session.mount('https://', adapter)
+                    r = session.get(f"http://{sensor.ip_address}/", timeout=10)
                     data = r.json()
                     r.close()
                     print(r)
@@ -92,9 +100,22 @@ class Heating:
                             f'{sensor.ip_address}.'
                         )
                     ).save()
+                except requests.ConnectionError:
+                    WorkflowError(
+                        error='Connection Error',
+                        description=(
+                            f'{sensor.name} was not contactable at '
+                            f'{sensor.ip_address}.'
+                        )
+                    ).save()
             elif sensor.type == 'esp8266_room':
                 try:
-                    r = requests.get(f"http://{sensor.ip_address}/", timeout=5)
+                    session = requests.Session()
+                    retry = Retry(connect=5, backoff_factor=0.5)
+                    adapter = HTTPAdapter(max_retries=retry)
+                    session.mount('http://', adapter)
+                    session.mount('https://', adapter)
+                    r = session.get(f"http://{sensor.ip_address}/", timeout=10)
                     data = r.json()
                     r.close()
                     ClimateSensorRecord(
@@ -107,6 +128,14 @@ class Heating:
                         error='Connection Timeout',
                         description=(
                             f'{sensor.name} was not contactable  at '
+                            f'{sensor.ip_address}.'
+                        )
+                    ).save()
+                except requests.ConnectionError:
+                    WorkflowError(
+                        error='Connection Error',
+                        description=(
+                            f'{sensor.name} was not contactable at '
                             f'{sensor.ip_address}.'
                         )
                     ).save()
