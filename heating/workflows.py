@@ -26,7 +26,6 @@ class Heating:
         if not self.daikin_error:
             heat_pump_status.room_setpoint = self.daikin_temps['room_setpoint']
             heat_pump_status.tank_setpoint = self.daikin_temps['tank_setpoint']
-            #heat_pump_status.reported_flow_temperature = self.daikin_temps['flow']
             heat_pump_status.return_temperature = self.daikin_temps['flow']
 
         # Collect data from climate sensors
@@ -59,44 +58,55 @@ class Heating:
                         temperature=self.daikin_temps['outdoor']
                     ).save()
             elif sensor.type == 'esp8266_heat_pump':
-                """
                 r = requests.get(f"http://{sensor.ip_address}/")
                 try:
                     r = r.json()
                     print(r)
                     if 'flow' in r and 'return' in r:
                         heat_pump_status.flow_temperature = round(r['flow'], 2)
-                        heat_pump_status.return_temperature = round(r['return'], 2)
+                        heat_pump_status.return_temperature = round(
+                            r['return'], 2
+                        )
                     if 'air' in r:
                         cupboard_climate_record = ClimateSensorRecord(
                             sensor=sensor,
                             temperature=round(r['air'], 1)
                         )
                         if 'humidity' in r:
-                            cupboard_climate_record.relative_humidity = round(r['humidity'], 1)
+                            cupboard_climate_record.relative_humidity = round(
+                                r['humidity'], 1
+                            )
                         cupboard_climate_record.save()
                 except Exception as e:
                     print(e)
-                """
-                pass
             elif sensor.type == 'esp8266_room':
-                pass
-        heat_pump_status.save()
+                r = requests.get(f"http://{sensor.ip_address}/")
+                try:
+                    r = r.json()
+                    ClimateSensorRecord(
+                        sensor=sensor,
+                        temperature=round(r['air'], 1),
+                        relative_humidity=round(r['humidity'], 1)
+                    ).save()
+                except Exception as e:
+                    print(e)
 
-    # Utils
-    def _collect_hue_climate_data(self, sensor):
-        r =  self.hue.get('sensors', sensor.hue_temp_id)
-        if not r['success']:
-            return r
-        temperature = r['record']['state']['temperature'] / 100
-        r =  self.hue.get('sensors', sensor.hue_light_id)
-        if not r['success']:
-            return r
-        ambient_light = r['record']['state']['lightlevel']
-        return {'temperature': temperature, 'ambient_light': ambient_light}
 
-    def _light_settings(self):
-        if not LightsSettings.objects.all().exists():
-            LightsSettings().save()
+# Utils
+def _collect_hue_climate_data(self, sensor):
+    r =  self.hue.get('sensors', sensor.hue_temp_id)
+    if not r['success']:
+        return r
+    temperature = r['record']['state']['temperature'] / 100
+    r =  self.hue.get('sensors', sensor.hue_light_id)
+    if not r['success']:
+        return r
+    ambient_light = r['record']['state']['lightlevel']
+    return {'temperature': temperature, 'ambient_light': ambient_light}
+
+
+def _light_settings(self):
+    if not LightsSettings.objects.all().exists():
+        LightsSettings().save()
         return LightsSettings.objects.all().first()
 
