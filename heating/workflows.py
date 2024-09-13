@@ -91,22 +91,20 @@ class Heating:
                 except Exception as e:
                     print(e)
 
+    # Utils
+    def _collect_hue_climate_data(self, sensor):
+        r = self.hue.get('sensors', sensor.hue_temp_id)
+        if not r['success']:
+            return r
+        temperature = r['record']['state']['temperature'] / 100
+        r =  self.hue.get('sensors', sensor.hue_light_id)
+        if not r['success']:
+            return r
+        ambient_light = r['record']['state']['lightlevel']
+        return {'temperature': temperature, 'ambient_light': ambient_light}
 
-# Utils
-def _collect_hue_climate_data(self, sensor):
-    r = self.hue.get('sensors', sensor.hue_temp_id)
-    if not r['success']:
-        return r
-    temperature = r['record']['state']['temperature'] / 100
-    r =  self.hue.get('sensors', sensor.hue_light_id)
-    if not r['success']:
-        return r
-    ambient_light = r['record']['state']['lightlevel']
-    return {'temperature': temperature, 'ambient_light': ambient_light}
-
-
-def _light_settings(self):
-    if not LightsSettings.objects.all().exists():
-        LightsSettings().save()
+    def _light_settings(self):
+        if not LightsSettings.objects.all().exists():
+            LightsSettings().save()
         return LightsSettings.objects.all().first()
 
