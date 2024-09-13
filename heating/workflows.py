@@ -1,7 +1,10 @@
 from .daikin_api import DaikinApi
 from lights.bridge_api import Bridge
 from lights.models import LightsSettings
-from heating.models import ClimateSensor, HeatPumpStatusRecord, ClimateSensorRecord
+from heating.models import (ClimateSensor,
+                            HeatPumpStatusRecord,
+                            ClimateSensorRecord)
+from scribe.models import WorkflowError
 import requests
 
 
@@ -31,6 +34,7 @@ class Heating:
         # Collect data from climate sensors
         sensors = ClimateSensor.objects.all()
         for sensor in sensors:
+            print(f'Contacting {sensor.name}')
             if sensor.type == 'hue_presence_sensor':
                 if self.hue.is_authorised():
                     climate_data = self._collect_hue_climate_data(sensor)
@@ -58,38 +62,54 @@ class Heating:
                         temperature=self.daikin_temps['outdoor']
                     ).save()
             elif sensor.type == 'esp8266_heat_pump':
-                r = requests.get(f"http://{sensor.ip_address}/")
                 try:
-                    r = r.json()
+                    r = requests.get(f"http://{sensor.ip_address}/", timeout=5)
+                    data = r.json()
+                    r.close()
                     print(r)
                     if 'flow' in r and 'return' in r:
-                        heat_pump_status.flow_temperature = round(r['flow'], 2)
+                        heat_pump_status.flow_temperature = round(
+                            data['flow'], 2
+                        )
                         heat_pump_status.return_temperature = round(
-                            r['return'], 2
+                            data['return'], 2
                         )
                     if 'air' in r:
                         cupboard_climate_record = ClimateSensorRecord(
                             sensor=sensor,
-                            temperature=round(r['air'], 1)
+                            temperature=round(data['air'], 1)
                         )
                         if 'humidity' in r:
                             cupboard_climate_record.relative_humidity = round(
-                                r['humidity'], 1
+                                data['humidity'], 1
                             )
                         cupboard_climate_record.save()
-                except Exception as e:
-                    print(e)
+                except requests.ConnectTimeout:
+                    WorkflowError(
+                        error='Connection Timeout',
+                        description=(
+                            f'{sensor.name} was not contactable at '
+                            f'{sensor.ip_address}.'
+                        )
+                    ).save()
             elif sensor.type == 'esp8266_room':
-                r = requests.get(f"http://{sensor.ip_address}/")
                 try:
-                    r = r.json()
+                    r = requests.get(f"http://{sensor.ip_address}/", timeout=5)
+                    data = r.json()
+                    r.close()
                     ClimateSensorRecord(
                         sensor=sensor,
-                        temperature=round(r['air'], 1),
-                        relative_humidity=round(r['humidity'], 1)
+                        temperature=round(data['air'], 1),
+                        relative_humidity=round(data['humidity'], 1)
                     ).save()
-                except Exception as e:
-                    print(e)
+                except requests.ConnectTimeout:
+                    WorkflowError(
+                        error='Connection Timeout',
+                        description=(
+                            f'{sensor.name} was not contactable  at '
+                            f'{sensor.ip_address}.'
+                        )
+                    ).save()
 
     # Utils
     def _collect_hue_climate_data(self, sensor):
