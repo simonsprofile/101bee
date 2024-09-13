@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'lights',
     'entry',
     'heating',
+    'scribe',
 
     # Third Party Apps
     'corsheaders',
