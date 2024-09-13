@@ -24,15 +24,14 @@
             <div class="content-tile flex-col col-5">
                 <div class="flex-container flex-col flex-c">
                     {% if daikin_authenticated %}
-                            <span class="button-sm button-outline-success mt-3 mb-1">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">check</span>
-                                <span class="align-middle ps-1">Daikin is Connected</span>
-                            </span>
-                            <a class="button button-danger mt-3" href="{% url 'daikin_disconnect' %}">
-                                <span class="material-symbols-outlined md-dark md-24 align-middle">sync_disabled</span>
-                                <span class="align-middle ps-1">Disconnect Daikin</span>
-                            </a>
-                        </div>
+                        <span class="button-sm button-outline-success mt-3 mb-1">
+                            <span class="material-symbols-outlined md-dark md-24 align-middle">check</span>
+                            <span class="align-middle ps-1">Daikin is Connected</span>
+                        </span>
+                        <a class="button button-danger mt-3" href="{% url 'daikin_disconnect' %}">
+                            <span class="material-symbols-outlined md-dark md-24 align-middle">sync_disabled</span>
+                            <span class="align-middle ps-1">Disconnect Daikin</span>
+                        </a>
                     {% else %}
                         <span class="button-sm button-outline-danger mt-3 mb-1">
                             <span class="material-symbols-outlined md-dark md-24 align-middle">close</span>
@@ -46,5 +45,410 @@
                 </div>
             </div>
         </div>
+        <h2>Heating History</h2>
+        <div class="flex-container flex-row">
+            <div class="flex-container flex-row flex-stretch flex-wrap col-12">
+                <div class="content-tile min-md">
+                    <div class="tab-button-set flex-container flex-row">
+                        <div class="tab-button tab_label tab-button-active" id="tab1_label" onClick="showAndLoadTab('tab1', '24 Hour');">24 Hour</div>
+                        <div class="tab-button tab_label" id="tab2_label" onClick="showAndLoadTab('tab2', '48 Hour');">48 Hour</div>
+                        <div class="tab-button tab_label" id="tab3_label" onClick="showAndLoadTab('tab3', 'Week');">Week</div>
+                        <div class="tab-button tab_label" id="tab4_label" onClick="showAndLoadTab('tab4', 'Month');">Month</div>
+                        <div class="tab-button tab_label" id="tab5_label" onClick="showAndLoadTab('tab5', 'Year');;">Year</div>
+                    </div>
+                    <div class="tab" style="display: block;" id="tab1">
+                        <canvas id="dailyChart" height="180"></canvas>
+                    </div>
+                    <div class="tab" style="display: none;" id="tab2">
+                        <canvas id="twoDailyChart" height="180"></canvas>
+                    </div>
+                    <div class="tab" style="display: none;" id="tab3">
+                        <canvas id="weeklyChart" height="180"></canvas>
+                    </div>
+                    <div class="tab" style="display: none;" id="tab4">
+                        <canvas id="monthlyChart" height="180"></canvas>
+                    </div>
+                    <div class="tab" style="display: none;" id="tab5">
+                        <canvas id="yearlyChart" height="180"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock content %}
+
+{% block javascript_tail %}
+    <script>
+                // Collate elements to display graphs
+        const dailyChart = document.getElementById('dailyChart');
+        const weeklyChart = document.getElementById('weeklyChart');
+        const monthlyChart = document.getElementById('monthlyChart');
+        const yearlyChart = document.getElementById('yearlyChart');
+        var dataset_shortlist = []
+
+        // Collate data from view
+        const roomSetpointRecordsJSON = JSON.parse('{{ room_setpoint_records|safe }}');
+        const tankSetpointRecordsJSON = JSON.parse('{{ tank_setpoint_records|safe }}');
+        const flowTemperatureRecordsJSON = JSON.parse('{{ flow_temperature_records|safe }}');
+        const returnTemperatureRecordsJSON = JSON.parse('{{ return_temperature_records|safe }}');
+
+        // Create datasets from data
+        function addToShortlist(name, data, colour, hide) {
+          var dataRecords = data.map(item => ({
+              x: new Date(item.x),
+              y: item.y
+          }));
+          dataset_shortlist.push({
+            label: name,
+            data: dataRecords,
+            backgroundColor: 'transparent',
+            borderColor: colour,
+            borderWidth: 2,
+            tension: 0.5,
+            hidden: hide
+          });
+        }
+        addToShortlist('Room Setpoint', roomSetpointRecordsJSON, '#9C5013', true);
+        addToShortlist('Tank Setpoint', tankSetpointRecordsJSON, 'darkblue', true);
+        addToShortlist('Flow Temperature', flowTemperatureRecordsJSON, '#204809', false);
+        addToShortlist('Flow Temperature', returnTemperatureRecordsJSON, '#B7B863', false);
+
+        const colours = {
+            'Hot Water': 'cornflowerblue',
+            'Thermostat': '#D66F1A',
+            'Outdoor': '#BAA9D2',
+            'Plant Room': 'rgb(225, 179, 198, 0.8)'
+        };
+        const hide_these_datatsets = [
+            'Hot Water'
+        ]
+
+        {% for sensor_name, sensor_records in sensor_records.items %}
+            var colour = 'rgb(214, 111, 26, 0.3)';
+            if ('{{ sensor_name|safe }}' in colours) {
+                colour = colours['{{ sensor_name|safe }}'];
+            }
+            var hide_dataset = false;
+            if (hide_these_datatsets.includes('{{ sensor_name|safe }}')) {
+                hide_dataset = true;
+            }
+            const {{ sensor_name|cut:" "|safe }}JSON = JSON.parse('{{ sensor_records|safe }}');
+            addToShortlist(
+              '{{ sensor_name|safe }}',
+              {{ sensor_name|cut:" "|safe }}JSON,
+              colour,
+              hide_dataset
+            );
+        {% endfor %}
+
+        // Re-Order Datasets
+        var datasets = [];
+        var ordering = [
+            'Room Setpoint',
+            'Thermostat',
+            'Kitchen',
+            'Landing',
+            'Hallway',
+            'Living Room',
+
+            'Tank Setpoint',
+            'Hot Water',
+
+            'Outdoor',
+            'Plant Room',
+
+            'Flow Temperature',
+            'Return Temperature'
+        ];
+        for (var s = 0; s < ordering.length; s++) {
+            var search_for = ordering[s];
+            for (var d = 0; d < dataset_shortlist.length; d++) {
+                let dataset_name = dataset_shortlist[d].label;
+                if (search_for == dataset_name) {
+                    datasets.push(dataset_shortlist.splice(d, 1)[0]);
+                }
+            }
+        }
+        datasets = datasets.concat(dataset_shortlist);
+
+        // Create Daily chart straight away.
+        new Chart(dailyChart, {
+            type: 'line',
+            data: {
+              datasets: datasets
+            },
+            options: {
+                scales: {
+                    x: {
+                      type: 'time',
+                      min: '{{ one_day_ago }}',
+                      max: '{{ now }}',
+                      time: {
+                        unit: 'hour',
+                        displayFormats: {
+                            minute: 'HH:mm'
+                        }
+                      },
+                      ticks: {
+                        // Force ticks for all hours, even with missing data
+                        source: 'linear',  // Use 'linear' for consistent ticks
+                        major: {
+                          unit: 'hour' // Display major ticks for each hour
+                        }
+                      },
+                      title: {
+                        display: true,
+                        text: 'Time'
+                      }
+                    },
+                    y: {
+                      type: 'logarithmic',
+                      title: {
+                        display: true,
+                        text: 'Temperature (ºC)'
+                      }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        align: 'center',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true,
+                            pointStyle: 'line'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Legend',
+                            font: {
+                               size: 14,
+                               weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+
+                    }
+                }
+            }
+        });
+
+
+        // Prep other graphs
+        function loadTwoDailyChart() {
+          new Chart(twoDailyChart, {
+              type: 'line',
+              data: {
+                datasets: datasets
+              },
+              options: {
+                scales: {
+                  x: {
+                    type: 'time',
+                    min: '{{ two_days_ago }}',
+                    max: '{{ now }}',
+                    time: {
+                      unit: 'hour',
+                      displayFormats: {
+                          minute: 'HH:mm'
+                      }
+                    },
+                    ticks: {
+                      // Force ticks for all hours, even with missing data
+                      source: 'linear',  // Use 'linear' for consistent ticks
+                      major: {
+                        unit: 'hour' // Display major ticks for each hour
+                      }
+                    },
+                    title: {
+                      display: true,
+                      text: 'Time'
+                    }
+                  },
+                  y: {
+                    type: 'logarithmic',
+                    title: {
+                      display: true,
+                      text: 'Temperature (ºC)'
+                    }
+                  }
+                }
+              }
+          });
+        }
+
+        function loadWeeklyChart() {
+          new Chart(weeklyChart, {
+              type: 'line',
+              data: {
+                datasets: datasets
+              },
+              options: {
+                elements: {
+                  point:{
+                    radius: 0
+                  }
+                },
+                bezierCurve: true,
+                scales: {
+                  x: {
+                    type: 'time',
+                    min: '{{ one_week_ago }}',
+                    max: '{{ now }}',
+                    time: {
+                      unit: 'day',
+                      displayFormats: {
+                          day: 'EEEE'
+                      }
+                    },
+                    ticks: {
+                      // Force ticks for all hours, even with missing data
+                      source: 'linear',  // Use 'linear' for consistent ticks
+                      major: {
+                        unit: 'hour' // Display major ticks for each hour
+                      }
+                    },
+                    title: {
+                      display: true,
+                      text: 'Time'
+                    }
+                  },
+                  y: {
+                    type: 'logarithmic',
+                    title: {
+                      display: true,
+                      text: 'Temperature (ºC)'
+                    }
+                  }
+                }
+              }
+          });
+        }
+
+        function loadMonthlyChart() {
+          new Chart(monthlyChart, {
+              type: 'line',
+              data: {
+                datasets: datasets
+              },
+              options: {
+                elements: {
+                  point:{
+                    radius: 0
+                  }
+                },
+                bezierCurve: true,
+                scales: {
+                  x: {
+                    type: 'time',
+                    min: '{{ one_month_ago }}',
+                    max: '{{ now }}',
+                    time: {
+                      unit: 'day',
+                      displayFormats: {
+                          day: 'd MMM'
+                      }
+                    },
+                    ticks: {
+                      // Force ticks for all hours, even with missing data
+                      source: 'linear',  // Use 'linear' for consistent ticks
+                      major: {
+                        unit: 'hour' // Display major ticks for each hour
+                      }
+                    },
+                    title: {
+                      display: true,
+                      text: 'Time'
+                    }
+                  },
+                  y: {
+                    type: 'logarithmic',
+                    title: {
+                      display: true,
+                      text: 'Temperature (ºC)'
+                    }
+                  }
+                }
+              }
+          });
+        }
+
+        function loadYearlyChart() {
+          new Chart(yearlyChart, {
+              type: 'line',
+              data: {
+                datasets: datasets
+              },
+              options: {
+                elements: {
+                  point:{
+                    radius: 0
+                  }
+                },
+                bezierCurve: true,
+                scales: {
+                  x: {
+                    type: 'time',
+                    min: '{{ one_year_ago }}',
+                    max: '{{ now }}',
+                    time: {
+                      unit: 'month',
+                      displayFormats: {
+                          month: 'MMMM'
+                      }
+                    },
+                    ticks: {
+                      // Force ticks for all hours, even with missing data
+                      source: 'linear',  // Use 'linear' for consistent ticks
+                      major: {
+                        unit: 'hour' // Display major ticks for each hour
+                      }
+                    },
+                    title: {
+                      display: true,
+                      text: 'Time'
+                    }
+                  },
+                  y: {
+                    type: 'logarithmic',
+                    title: {
+                      display: true,
+                      text: 'Temperature (ºC)'
+                    }
+                  }
+                }
+              }
+          });
+        }
+
+        function loadGraph(graph_name) {
+            switch (graph_name) {
+                case '48 Hour':
+                    loadTwoDailyChart();
+                    break;
+                case 'Week':
+                    loadWeeklyChart();
+                    break;
+                case 'Month':
+                    loadMonthlyChart();
+                    break;
+                case 'Year':
+                    loadYearlyChart();
+                    break;
+                default:
+                    // Handle invalid tab ID
+                    break;
+            }
+        }
+
+        // Load graphs when tabs open
+        function showAndLoadTab(id, graph_name) {
+          try {
+            loadGraph(graph_name);
+          } catch(err) {}
+          showTab('tab', id);
+        }
+    </script>
+{% endblock javascript_tail %}
