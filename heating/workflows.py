@@ -94,7 +94,7 @@ class Heating:
 
 # Utils
 def _collect_hue_climate_data(self, sensor):
-    r =  self.hue.get('sensors', sensor.hue_temp_id)
+    r = self.hue.get('sensors', sensor.hue_temp_id)
     if not r['success']:
         return r
     temperature = r['record']['state']['temperature'] / 100
