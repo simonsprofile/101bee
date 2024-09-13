@@ -112,13 +112,11 @@ class Bridge:
         except requests.ConnectTimeout:
             return {'success': False, 'errors': 'No response from the Bridge.'}
         if len(r.json()['errors']) > 0:
-            return {
-                'success': False,
-                'errors': '\n'.join([
-                    x['description'] for x in r.json()['errors']
-                ])
-            }
+            errors = '\n'.join([x['description'] for x in r.json()['errors']])
+            r.close()
+            return {'success': False, 'errors': errors}
         else:
+            r.close()
             return {'success': True, 'record': r.json()['data'][0]}
 
     def post_v2(self, endpoint, payload):
@@ -133,14 +131,18 @@ class Bridge:
         except requests.ConnectTimeout:
             return {'success': False, 'errors': 'No response from the Bridge.'}
         if len(r.json()['errors']) > 0:
-            return {
-                'success': False,
-                'errors': '\n'.join([
+            errors = '\n'.join([
                     x['description'] for x in r.json()['errors']
                 ])
+            r.close()
+            return {
+                'success': False,
+                'errors': errors
             }
         else:
-            return {'success': True, 'record': r.json()['data'][0]}
+            record = r.json()['data'][0]
+            r.close()
+            return {'success': True, 'record': record}
 
     def delete_v2(self, endpoint, id):
         url = f"https://{self.bridge_ip}/clip/v2/resource/{endpoint}/{id}"
@@ -151,13 +153,16 @@ class Bridge:
         except requests.ConnectTimeout:
             return {'success': False, 'errors': 'No response from the Bridge.'}
         if len(r.json()['errors']) > 0:
-            return {
-                'success': False,
-                'errors': '\n'.join([
+            errors = '\n'.join([
                     x['description'] for x in r.json()['errors']
                 ])
+            r.close()
+            return {
+                'success': False,
+                'errors': errors
             }
         else:
+            r.close()
             return {'success': True}
 
     def search_v1(self, endpoint):
@@ -169,13 +174,17 @@ class Bridge:
         try:
             data = r.json()
         except requests.JSONDecodeError:
+            r.close()
             return {'success': False, 'errors': 'Response was not JSON.'}
         if isinstance(data, list):
+            errors = '\n'.join([x['error']['description'] for x in data])
+            r.close()
             return {
                 'success': False,
-                'errors': '\n'.join([x['error']['description'] for x in data])
+                'errors': errors
             }
         else:
+            r.close()
             return {'success': True, 'records': data}
 
     def get_v1(self, endpoint, id):
@@ -187,16 +196,21 @@ class Bridge:
         try:
             data = r.json()
         except requests.JSONDecodeError:
+            r.close()
             return {'success': False, 'errors': 'Response was not JSON.'}
         if isinstance(data, list):
+            errors = '\n'.join([x['error']['description'] for x in data])
+            r.close()
             return {
                 'success': False,
-                'errors': '\n'.join([x['error']['description'] for x in data])
+                'errors': errors
             }
         else:
+            record = data | {'id_v1': f"/{endpoint}/{id}"}
+            r.close()
             return {
                 'success': True,
-                'record': data | {'id_v1': f"/{endpoint}/{id}"}
+                'record': record
             }
 
     def put_v1(self, endpoint, id, payload):
@@ -213,7 +227,9 @@ class Bridge:
             return {'success': False, 'errors': 'No response from the Bridge.'}
         try:
             data = r.json()
+            r.close()
         except requests.JSONDecodeError:
+            r.close()
             return {'success': False, 'errors': 'Response was not JSON.'}
 
         results = sum([list(x.keys()) for x in data], [])
@@ -250,9 +266,11 @@ class Bridge:
             return {'success': False, 'errors': 'No response from the Bridge.'}
         try:
             data = r.json()
+            r.close()
         except requests.JSONDecodeError:
             return {'success': False, 'errors': 'Response was not JSON.'}
         results = sum([list(x.keys()) for x in data], [])
+        r.close()
         if 'success' in results:
             r = self.get(endpoint, data[0]['success']['id'])
             if not r['success']:
@@ -284,14 +302,17 @@ class Bridge:
         try:
             data = r.json()
         except requests.JSONDecodeError:
+            r.close()
             return {'success': False, 'errors': 'Response was not JSON.'}
         results = sum([list(x.keys()) for x in data], [])
         if 'success' in results:
+            r.close()
             return {'success': True}
         errors = sum([
             list(x.values()) for x in data
             if 'error' in list(x.keys())
         ], [])
+        r.close()
         return {
             'success': False,
             'errors': '\n'.join([x['description'] for x in errors])
