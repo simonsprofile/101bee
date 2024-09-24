@@ -41,37 +41,53 @@ class Heating:
             if sensor.type == 'hue_presence_sensor':
                 if self.hue.is_authorised():
                     climate_data = self._collect_hue_climate_data(sensor)
+                    temperature = (
+                        climate_data['temperature']
+                        + sensor.temperature_offset
+                    )
                     ClimateSensorRecord(
                         sensor=sensor,
-                        temperature=climate_data['temperature'],
+                        temperature=temperature,
                         ambient_light=climate_data['ambient_light']
                     ).save()
             elif sensor.type == 'daikin_thermostat':
                 if not self.daikin_error:
+                    temperature = (
+                            self.daikin_temps['room']
+                            + sensor.temperature_offset
+                    )
                     ClimateSensorRecord(
                         sensor=sensor,
-                        temperature=self.daikin_temps['room']
+                        temperature=temperature
                     ).save()
             elif sensor.type == 'daikin_tank':
                 if not self.daikin_error:
+                    temperature = (
+                            self.daikin_temps['hot_water']
+                            + sensor.temperature_offset
+                    )
                     ClimateSensorRecord(
                         sensor=sensor,
-                        temperature=self.daikin_temps['hot_water']
+                        temperature=temperature
                     ).save()
             elif sensor.type == 'daikin_weather':
                 if not self.daikin_error:
+                    temperature = (
+                        self.daikin_temps['outdoor']
+                        + sensor.temperature_offset
+                    )
                     ClimateSensorRecord(
                         sensor=sensor,
-                        temperature=self.daikin_temps['outdoor']
+                        temperature=temperature
                     ).save()
             elif sensor.type == 'esp8266_heat_pump':
                 try:
                     session = requests.Session()
-                    retry = Retry(connect=5, backoff_factor=0.5)
+                    retry = Retry(connect=3, backoff_factor=0.5)
                     adapter = HTTPAdapter(max_retries=retry)
                     session.mount('http://', adapter)
                     session.mount('https://', adapter)
-                    r = session.get(f"http://{sensor.ip_address}/", timeout=10)
+                    r = session.get(f"http://{sensor.ip_address}/", timeout=5)
                     data = r.json()
                     r.close()
                     print(r)
@@ -83,9 +99,13 @@ class Heating:
                             data['return'], 2
                         )
                     if 'air' in r:
+                        temperature = (
+                            round(data['air'], 1)
+                            + sensor.temperature_offset
+                        )
                         cupboard_climate_record = ClimateSensorRecord(
                             sensor=sensor,
-                            temperature=round(data['air'], 1)
+                            temperature=temperature
                         )
                         if 'humidity' in r:
                             cupboard_climate_record.relative_humidity = round(
@@ -111,16 +131,20 @@ class Heating:
             elif sensor.type == 'esp8266_room':
                 try:
                     session = requests.Session()
-                    retry = Retry(connect=5, backoff_factor=0.5)
+                    retry = Retry(connect=3, backoff_factor=0.5)
                     adapter = HTTPAdapter(max_retries=retry)
                     session.mount('http://', adapter)
                     session.mount('https://', adapter)
-                    r = session.get(f"http://{sensor.ip_address}/", timeout=10)
+                    r = session.get(f"http://{sensor.ip_address}/", timeout=5)
                     data = r.json()
                     r.close()
+                    temperature = (
+                        round(data['air'], 1)
+                        + sensor.temperature_offset
+                    )
                     ClimateSensorRecord(
                         sensor=sensor,
-                        temperature=round(data['air'], 1),
+                        temperature=temperature,
                         relative_humidity=round(data['humidity'], 1)
                     ).save()
                 except requests.ConnectTimeout:

@@ -8,7 +8,7 @@ admin.site.register(DaikinAccessToken)
 
 @admin.register(ClimateSensor)
 class HeatSensorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type', )
+    list_display = ('name', 'type', 'ip_address', )
     list_filter = ('type', )
 
 

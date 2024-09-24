@@ -29,6 +29,9 @@ class ClimateSensor(models.Model):
         'Philips Hue Sensor ID for Ambient Light', null=True, blank=True
     )
     ip_address = models.GenericIPAddressField('IP Address', protocol='IPv4', null=True, blank=True)
+    temperature_offset = models.FloatField(
+        'Temperature Correction Offset', null=False, blank=False, default=0.0
+    )
 
     def __str__(self):
         return self.name
