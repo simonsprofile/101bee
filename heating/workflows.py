@@ -90,15 +90,13 @@ class Heating:
                     r = session.get(f"http://{sensor.ip_address}/", timeout=5)
                     data = r.json()
                     r.close()
-                    print(r)
-                    if 'flow' in r and 'return' in r:
-                        heat_pump_status.flow_temperature = round(
-                            data['flow'], 2
-                        )
-                        heat_pump_status.return_temperature = round(
-                            data['return'], 2
-                        )
-                    if 'air' in r:
+                    if 'flow' in data and 'return' in data:
+                        flow = round(data['flow'], 2)
+                        retn = round(data['return'], 2)
+                        if not self.daikin_error:
+                            heat_pump_status.flow_temperature = flow
+                            heat_pump_status.return_temperature = retn
+                    if 'air' in data:
                         temperature = (
                             round(data['air'], 1)
                             + sensor.temperature_offset
@@ -107,7 +105,7 @@ class Heating:
                             sensor=sensor,
                             temperature=temperature
                         )
-                        if 'humidity' in r:
+                        if 'humidity' in data:
                             cupboard_climate_record.relative_humidity = round(
                                 data['humidity'], 1
                             )
@@ -163,6 +161,8 @@ class Heating:
                             f'{sensor.ip_address}.'
                         )
                     ).save()
+        if not self.daikin_error:
+            heat_pump_status.save()
 
     # Utils
     def _collect_hue_climate_data(self, sensor):
