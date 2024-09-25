@@ -32,7 +32,7 @@ class Heating:
         if not self.daikin_error:
             heat_pump_status.room_setpoint = self.daikin_temps['room_setpoint']
             heat_pump_status.tank_setpoint = self.daikin_temps['tank_setpoint']
-            heat_pump_status.return_temperature = self.daikin_temps['flow']
+            heat_pump_status.flow_temperature = self.daikin_temps['flow']
 
         # Collect data from climate sensors
         sensors = ClimateSensor.objects.all()
@@ -96,6 +96,8 @@ class Heating:
                         if not self.daikin_error:
                             heat_pump_status.flow_temperature = flow
                             heat_pump_status.return_temperature = retn
+                            heat_pump_status.reported_flow_temperature = \
+                                self.daikin_temps['flow']
                     if 'air' in data:
                         temperature = (
                             round(data['air'], 1)
