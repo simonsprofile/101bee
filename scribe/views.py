@@ -9,4 +9,4 @@ class RecordData(View):
     def get(self, request, *args, **kwargs):
         heating = Heating()
         heating.record_current_data()
-        return HttpResponse(status_code=200)
+        return HttpResponse(status=204)
