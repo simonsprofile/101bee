@@ -129,7 +129,12 @@ class DaikinApi:
             'room': None,
             'room_setpoint': None,
             'outdoor': None,
-            'flow': None
+            'flow': None,
+            'monthly_usage_data': {
+                'electrical_input': {},
+                'heat_output': {}
+            },
+            'temp_print': None
         }
 
         self.headers['Authorization'] = f"Bearer {token.access_token}"
@@ -140,8 +145,6 @@ class DaikinApi:
             return {'success': False, 'message': r.json()['message']}
         for g in r.json():
             for m in g['managementPoints']:
-                if m['managementPointType'] == 'nerp':
-                    pprint(m)
                 if m['managementPointType'] == 'domesticHotWaterTank':
                     temps['hot_water'] = m['sensoryData']['value']['tankTemperature']['value']
                     temps['tank_setpoint'] = m['temperatureControl']['value']['operationModes']['heating']['setpoints']['domesticHotWaterTemperature']['value']
@@ -150,6 +153,7 @@ class DaikinApi:
                     temps['outdoor'] = m['sensoryData']['value']['outdoorTemperature']['value']
                     temps['flow'] = m['sensoryData']['value']['leavingWaterTemperature']['value']
                     temps['room_setpoint'] = m['temperatureControl']['value']['operationModes']['auto']['setpoints']['roomTemperature']['value']
+        temps['temp_print'] = r.json()
         return {'success': True, 'temps': temps}
 
     def record_snapshot(self):

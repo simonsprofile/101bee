@@ -166,6 +166,8 @@ class Heating:
         if not self.daikin_error:
             heat_pump_status.save()
 
+        return self.daikin_temps['temp_print']
+
     # Utils
     def _collect_hue_climate_data(self, sensor):
         r = self.hue.get('sensors', sensor.hue_temp_id)
