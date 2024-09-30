@@ -142,14 +142,13 @@ class DaikinApi:
         self.headers.pop('Authorization', None)
         if 'message' in r.json():
             return {'success': False, 'message': r.json()['message']}
+        pprint(r.json())
         for g in r.json():
             for m in g['managementPoints']:
                 if m['managementPointType'] == 'domesticHotWaterTank':
-                    pprint(m['consumptionData'])
                     temps['hot_water'] = m['sensoryData']['value']['tankTemperature']['value']
                     temps['tank_setpoint'] = m['temperatureControl']['value']['operationModes']['heating']['setpoints']['domesticHotWaterTemperature']['value']
                 elif m['managementPointType'] == 'climateControl':
-                    pprint(m['consumptionData'])
                     temps['room'] = m['sensoryData']['value']['roomTemperature']['value']
                     temps['outdoor'] = m['sensoryData']['value']['outdoorTemperature']['value']
                     temps['flow'] = m['sensoryData']['value']['leavingWaterTemperature']['value']
