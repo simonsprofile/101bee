@@ -1,5 +1,3 @@
-import json
-
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import View
 from heating.workflows import Heating

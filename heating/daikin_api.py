@@ -3,7 +3,6 @@ from .models import DaikinAccessToken
 import environ
 from datetime import datetime, timedelta
 from requests.auth import HTTPBasicAuth
-from pprint import pprint
 
 
 ENV = environ.Env()
@@ -129,11 +128,7 @@ class DaikinApi:
             'room': None,
             'room_setpoint': None,
             'outdoor': None,
-            'flow': None,
-            'monthly_usage_data': {
-                'electrical_input': {},
-                'heat_output': {}
-            }
+            'flow': None
         }
 
         self.headers['Authorization'] = f"Bearer {token.access_token}"
@@ -142,7 +137,6 @@ class DaikinApi:
         self.headers.pop('Authorization', None)
         if 'message' in r.json():
             return {'success': False, 'message': r.json()['message']}
-        pprint(r.json())
         for g in r.json():
             for m in g['managementPoints']:
                 if m['managementPointType'] == 'domesticHotWaterTank':
