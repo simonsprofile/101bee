@@ -78,7 +78,10 @@ class DaikinApi:
             'refresh_token': refresh_token
         }
         url = self.build_url('idp', 'token', params)
+        print(url)
         r = requests.post(url, headers=self.headers)
+        print(r.status_code)
+        print(r.json())
         token = self.save_token(r.json())
         success = self.is_authenticated()
         return {
