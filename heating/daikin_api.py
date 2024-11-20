@@ -1,8 +1,12 @@
+import json
+
 import requests
 from .models import DaikinAccessToken
 import environ
 from datetime import datetime, timedelta
 from requests.auth import HTTPBasicAuth
+
+from scribe.models import WorkflowError
 
 
 ENV = environ.Env()
@@ -78,11 +82,21 @@ class DaikinApi:
             'refresh_token': refresh_token
         }
         url = self.build_url('idp', 'token', params)
-        print(url)
         r = requests.post(url, headers=self.headers)
-        print(r.status_code)
-        print(r.json())
-        token = self.save_token(r.json())
+        try:
+            response_body = r.json()
+        except Exception as e:
+            WorkflowError(
+                error='Refresh Response was not json',
+                description=f"Response from Daikin was not JSON data.\n{e}\n\n{r}"
+            )
+        try:
+            token = self.save_token(r.json())
+        except KeyError as e:
+            WorkflowError(
+                error='Refresh Response failure',
+                description=f"Response from Daikin was not as expected.\n{e}\n\n{r}"
+            )
         success = self.is_authenticated()
         return {
             'success': success,
@@ -94,10 +108,9 @@ class DaikinApi:
         if not token:
             token = DaikinAccessToken()
         token.access_token = token_json['access_token']
-        token.refresh_token = token_json['refresh_token']
         token.expires_at = (
-            datetime.now()
-            + timedelta(seconds=(token_json['expires_in'] - 30))
+                datetime.now()
+                + timedelta(seconds=(token_json['expires_in'] - 30))
         )
         token.save()
         return token
