@@ -6,8 +6,6 @@ import environ
 from datetime import datetime, timedelta
 from requests.auth import HTTPBasicAuth
 
-from scribe.models import WorkflowError
-
 
 ENV = environ.Env()
 
@@ -34,24 +32,40 @@ class DaikinApi:
 
     def get_token(self):
         token = DaikinAccessToken.objects.first()
-        return token if token else False
+        return token if token else None
 
     def is_authenticated(self):
         token = self.get_token()
         if not token:
-            return False
-        print(token.__dict__)
-        if token.expires_at < datetime.now() or True:
-            r = self.refresh_token(token.refresh_token)
-            if not r['success']:
-                return False
+            return {'authorized': False, 'error': 'No saved auth token.'}
+        if token.expires_at < datetime.now():
+            refresh = self.refresh_token(token.refresh_token)
+            if not refresh['success']:
+                return {
+                    'authorized': False,
+                    'error': (f"While refreshing the token the following "
+                              f"error occurred:\n{refresh['error']}")
+                }
             else:
-                token = r['token']
+                token = refresh['token']
         url = self.build_url('idp', 'introspect', {'token': token.access_token})
         r = requests.post(url, auth=self.basic_auth, headers=self.headers)
-        response = r.json()
-        print(r.json())
-        return response['active']
+        cleaned_r = self.clean_response(r, ['active'])
+        if cleaned_r['success']:
+            r_json = cleaned_r.json
+            if r_json['active']:
+                return {'authorized': True}
+            else:
+                return {
+                    'authorized': False,
+                    'error': 'Token exists but was not valid.'
+                }
+        else:
+            return {
+                'authorized': False,
+                'error': (f"While checking if the token was valid, there was "
+                          f"an issue with the response:\n{cleaned_r['error']}")
+            }
 
     def auth_url(self):
         params = {
@@ -72,10 +86,27 @@ class DaikinApi:
         }
         url = self.build_url('idp', 'token', params)
         r = requests.post(url, auth=self.basic_auth, headers=self.headers)
-        print(r.json())
-        self.save_token(r.json())
-        success = self.is_authenticated()
-        return {'success': success}
+        cleaned_r = self.clean_response(
+            r,
+            ['access_token', 'expires_in', 'refresh_token']
+        )
+        if cleaned_r['success']:
+            self.save_token(cleaned_r.json)
+            auth_check = self.is_authenticated()
+            if auth_check['authorized']:
+                return {'success': True}
+            else:
+                return {
+                    'success': False,
+                    'error': (f"While authorising with Daikin, the following "
+                              f"error occurred:\n{auth_check['error']}")
+                }
+        else:
+            return {
+                'success': False,
+                'error': (f"While authorising with Daikin, there was a problem "
+                          f"with the response:\n{cleaned_r['error']}")
+            }
 
     def refresh_token(self, refresh_token):
         params = {
@@ -86,34 +117,17 @@ class DaikinApi:
         }
         url = self.build_url('idp', 'token', params)
         r = requests.post(url, headers=self.headers)
-        print(r.status_code)
-        try:
-            response_body = r.json()
-            print(response_body)
-        except Exception as e:
-            WorkflowError(
-                error='Refresh Response was not json',
-                description=f"Response from Daikin was not JSON data.\n{e}\n\n{r}"
-            ).save()
-            return {
-                'success': False
-            }
-        try:
-            token = self.save_token(r.json())
-        except KeyError as e:
-            WorkflowError(
-                error='Refresh Response failure',
-                description=(f"Response from Daikin was not as expected.\n"
-                             f"{e} key was not in response\n\n{r.json()}")
-            ).save()
-            return {
-                'success': False
-            }
+        cleaned_r = self.clean_response(
+            r,
+            ['access_token', 'expires_in', 'refresh_token']
+        )
+        if cleaned_r['success']:
+            r_json = cleaned_r.json
+        else:
+            return cleaned_r
+        token = self.save_token(r_json)
         success = self.is_authenticated()
-        return {
-            'success': success,
-            'token': token
-        }
+        return {'success': success, 'token': token}
 
     def save_token(self, token_json):
         token = DaikinAccessToken.objects.first()
@@ -124,6 +138,9 @@ class DaikinApi:
                 datetime.now()
                 + timedelta(seconds=(token_json['expires_in'] - 30))
         )
+        token.refresh_token = token_json['refresh_token']
+        print('Saving token:')
+        print(token.__dict__)
         token.save()
         return token
 
@@ -145,9 +162,29 @@ class DaikinApi:
         token.delete()
         return
 
+    def clean_response(self, r, required_keys=[]):
+        try:
+            r_json = r.json()
+        except AttributeError as e:
+            return {'success': False, 'error': 'Response is not JSON.'}
+        for key in required_keys:
+            try:
+                value = r_json[key]
+            except KeyError as e:
+                return {
+                    'success': False,
+                    'error': f"{e} not found in response."
+                }
+        return {'success': True, 'json': r_json}
+
     def current_temps(self):
-        if not self.is_authenticated():
-            return {'success': False, 'message': 'Daikin not authenticated.'}
+        auth_check = self.is_authenticated()
+        if not auth_check['authorized']:
+            return {
+                'success': False,
+                'error': (f"Daikin was not authenticated because of the "
+                          f"following error:\n{auth_check['error']}")
+            }
         token = self.get_token()
 
         temps = {
@@ -164,7 +201,12 @@ class DaikinApi:
         r = requests.get(url, headers=self.headers)
         self.headers.pop('Authorization', None)
         if 'message' in r.json():
-            return {'success': False, 'message': r.json()['message']}
+            return {
+                'success': False,
+                'error': (f"While retrieving the status of the Daikin heating"
+                          f"system the following error occurred\n"
+                          f"{r.json()['message']}")
+            }
         for g in r.json():
             for m in g['managementPoints']:
                 if m['managementPointType'] == 'domesticHotWaterTank':
