@@ -76,7 +76,7 @@ var ordering = [
     'Room Setpoint',
     'Thermostat',
     'Kitchen',
-    'Living Room'
+    'Living Room',
     'Hallway',
 
     'Landing',
