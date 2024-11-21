@@ -16,7 +16,8 @@
                         <p>Flow: {{ temps.flow }}ºC</p>
                         <p>Outdoor: {{ temps.outdoor }}ºC</p>
                     {% else %}
-                        <p>Error collecting data from Daikin's servers...</p>
+                        <p>Error collecting data from Daikin's servers:</p>
+                        <p>{{ daikin_error }}</p>
                     {% endif %}
                 {% else %}
                     <p>Daikin is not connected.</p>
