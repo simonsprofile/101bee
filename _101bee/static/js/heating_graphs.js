@@ -7,7 +7,6 @@ var dataset_shortlist = []
 
 // Create datasets from data
 function addToShortlist(name, data, colour, hide) {
-  console.log(data);
   var dataRecords = data.map(item => ({
     x: new Date(item.x),
     y: item.y
