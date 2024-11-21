@@ -83,20 +83,30 @@ class DaikinApi:
         }
         url = self.build_url('idp', 'token', params)
         r = requests.post(url, headers=self.headers)
+        print(r.status_code)
         try:
             response_body = r.json()
+            print(response_body)
         except Exception as e:
             WorkflowError(
                 error='Refresh Response was not json',
                 description=f"Response from Daikin was not JSON data.\n{e}\n\n{r}"
-            )
+            ).save()
+            return {
+                'success': False,
+                'token': token
+            }
         try:
             token = self.save_token(r.json())
         except KeyError as e:
             WorkflowError(
                 error='Refresh Response failure',
                 description=f"Response from Daikin was not as expected.\n{e}\n\n{r}"
-            )
+            ).save()
+            return {
+                'success': False,
+                'token': token
+            }
         success = self.is_authenticated()
         return {
             'success': success,
