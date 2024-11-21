@@ -38,6 +38,7 @@ class DaikinApi:
 
     def is_authenticated(self):
         token = self.get_token()
+        print(token)
         if not token:
             return False
         if token.expires_at < datetime.now() or True:
