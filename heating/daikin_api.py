@@ -52,7 +52,7 @@ class DaikinApi:
         r = requests.post(url, auth=self.basic_auth, headers=self.headers)
         cleaned_r = self.clean_response(r, ['active'])
         if cleaned_r['success']:
-            r_json = cleaned_r.json
+            r_json = cleaned_r['json']
             if r_json['active']:
                 return {'authorized': True}
             else:
@@ -91,7 +91,7 @@ class DaikinApi:
             ['access_token', 'expires_in', 'refresh_token']
         )
         if cleaned_r['success']:
-            self.save_token(cleaned_r.json)
+            self.save_token(cleaned_r['json'])
             auth_check = self.is_authenticated()
             if auth_check['authorized']:
                 return {'success': True}
@@ -122,7 +122,7 @@ class DaikinApi:
             ['access_token', 'expires_in', 'refresh_token']
         )
         if cleaned_r['success']:
-            r_json = cleaned_r.json
+            r_json = cleaned_r['json']
         else:
             return cleaned_r
         token = self.save_token(r_json)
