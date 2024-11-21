@@ -23,6 +23,10 @@ class Heating:
         r = daikin.current_temps()
         if not r['success']:
             self.daikin_error = r['message']
+            WorkflowError(
+                error='Daikin not authenticated',
+                description='Daikin not authenticated.'
+            ).save()
         else:
             self.daikin_temps = r['temps']
 

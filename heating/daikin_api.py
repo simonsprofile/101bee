@@ -40,7 +40,7 @@ class DaikinApi:
         token = self.get_token()
         if not token:
             return False
-        if token.expires_at < datetime.now():
+        if token.expires_at < datetime.now() or True:
             r = self.refresh_token(token.refresh_token)
             if not r['success']:
                 return False
@@ -49,6 +49,7 @@ class DaikinApi:
         url = self.build_url('idp', 'introspect', {'token': token.access_token})
         r = requests.post(url, auth=self.basic_auth, headers=self.headers)
         response = r.json()
+        print(r.json())
         return response['active']
 
     def auth_url(self):
@@ -93,19 +94,18 @@ class DaikinApi:
                 description=f"Response from Daikin was not JSON data.\n{e}\n\n{r}"
             ).save()
             return {
-                'success': False,
-                'token': token
+                'success': False
             }
         try:
             token = self.save_token(r.json())
         except KeyError as e:
             WorkflowError(
                 error='Refresh Response failure',
-                description=f"Response from Daikin was not as expected.\n{e}\n\n{r}"
+                description=(f"Response from Daikin was not as expected.\n"
+                             f"{e} key was not in response\n\n{r.json()}")
             ).save()
             return {
-                'success': False,
-                'token': token
+                'success': False
             }
         success = self.is_authenticated()
         return {
