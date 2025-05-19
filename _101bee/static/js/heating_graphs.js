@@ -7,7 +7,6 @@ var dataset_shortlist = []
 
 // Create datasets from data
 function addToShortlist(name, data, colour, hide) {
-  console.log(data);
   var dataRecords = data.map(item => ({
     x: new Date(item.x),
     y: item.y
@@ -24,8 +23,8 @@ function addToShortlist(name, data, colour, hide) {
 }
 addToShortlist('Room Setpoint', roomSetpointRecordsJSON, '#9C5013', true);
 addToShortlist('Tank Setpoint', tankSetpointRecordsJSON, 'darkblue', true);
-addToShortlist('Flow Temperature', flowTemperatureRecordsJSON, '#204809', false);
-addToShortlist('Flow Temperature', returnTemperatureRecordsJSON, '#B7B863', false);
+addToShortlist('Flow', flowTemperatureRecordsJSON, '#204809', false);
+addToShortlist('Return', returnTemperatureRecordsJSON, '#B7B863', false);
 
 const cooler_room = 'rgb(0, 153, 0, 0.3)';
 const colours = {
@@ -43,7 +42,13 @@ const colours = {
     'Landing': cooler_room,
 };
 const hide_these_datatsets = [
-    'Hot Water'
+    'Hot Water',
+    'Bathroom',
+    'Hallway',
+    'Landing',
+    'Kitchen',
+    'Outdoor',
+    'Plant Room'
 ]
 
 for (sensor_name in sensorRecords) {
@@ -70,9 +75,14 @@ var ordering = [
     'Room Setpoint',
     'Thermostat',
     'Kitchen',
-    'Landing',
-    'Hallway',
     'Living Room',
+    'Hallway',
+
+    'Landing',
+    'Bathroom',
+    'Back Bedroom',
+    'Front Bedroom',
+    'Studio',
 
     'Tank Setpoint',
     'Hot Water',
@@ -80,8 +90,8 @@ var ordering = [
     'Outdoor',
     'Plant Room',
 
-    'Flow Temperature',
-    'Return Temperature'
+    'Flow',
+    'Return'
 ];
 for (var s = 0; s < ordering.length; s++) {
     var search_for = ordering[s];

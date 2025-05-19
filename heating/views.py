@@ -35,13 +35,15 @@ class Heating(TemplateView):
 
         # Get Daikin Data
         daikin = DaikinApi()
-        context['daikin_authenticated'] = daikin.is_authenticated()
-        context['daikin_auth_url'] = daikin.auth_url()
+        context['daikin_authenticated'] = True
         r = daikin.current_temps()
         if r['success']:
             context['temps'] = r['temps']
         else:
             context['temps'] = False
+            context['daikin_auth_url'] = daikin.auth_url()
+            context['daikin_authenticated'] = False
+            context['daikin_error'] = r['error']
 
         # Get Historical Data
         NOW = datetime.datetime.now()
