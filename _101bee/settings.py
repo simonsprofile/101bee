@@ -1,10 +1,12 @@
 from pathlib import Path
-from corsheaders.defaults import default_headers
 
 import environ
+from corsheaders.defaults import default_headers
 from django.contrib.messages import constants as messages
+from dotenv import load_dotenv
 
 ENV = environ.Env()
+load_dotenv()
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent
 APPS_DIR = ROOT_DIR / "_101bee"
 
