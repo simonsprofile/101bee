@@ -22,13 +22,17 @@ class Door(models.Model):
     status = models.CharField(
         'Last Known Status',
         max_length=64,
-        blank=False,
-        null=False
+        blank=True,
+        null=True
     )
     type = models.CharField(
         'Type',
         max_length=64,
-        choices=(('powered', 'Powered'), ('lock', 'Lock'), ),
+        choices=(
+            ('open-close', 'Open/Close'),
+            ('unlock-only', 'Unlock'),
+            ('lock-unlock', 'Lock/Unlock'),
+        ),
         blank=False,
         null=False,
     )

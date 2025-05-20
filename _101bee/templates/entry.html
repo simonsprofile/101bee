@@ -35,6 +35,16 @@
                                         <span class="material-symbols-outlined md-dark md-18 align-middle">lock_open</span>
                                         Currently Unlocked
                                     </span>
+                                {% elif key.Door.status == 'connected' %}
+                                    <span class="badge button-success mb-3 mt-0">
+                                        <span class="material-symbols-outlined md-dark md-18 align-middle">link</span>
+                                        Connected
+                                    </span>
+                                {% elif key.Door.status == 'not_connected' %}
+                                    <span class="badge button-danger mb-3 mt-0">
+                                        <span class="material-symbols-outlined md-dark md-18 align-middle">link_off</span>
+                                        Not Connected
+                                    </span>
                                 {% else %}
                                     <span class="badge button-warning mb-3 mt-0">
                                         <span class="material-symbols-outlined md-dark md-18 align-middle">link_off</span>
@@ -43,31 +53,34 @@
                                 {% endif %}
                             </div>
                             <div class="flex-container flex-row flex-fill flex-e pt-3">
-                                {% if key.Door.type == 'lock' %}
+                                {% if key.Door.type == 'unlock-only' or key.Door.type == 'lock-unlock' %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="door" value="{{ key.Door.pk }}">
                                         <input type="hidden" name="action" value="unlock">
-                                        <button type="submit" class="button button-sm button-success px-4 mb-3">
+                                        <button type="submit" class="button button-sm button-success px-4 mb-3"{% if key.Door.status == 'not_connected' %} disabled{% endif %}>
                                             <span class="material-symbols-outlined md-dark md-24 align-middle">lock_open</span>
                                             <span class="align-middle ps-1">Unlock</span>
                                         </button>
                                     </form>
+                                {% endif %}
+                                {% if key.Door.type == 'lock-unlock' %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="door" value="{{ key.Door.pk }}">
                                         <input type="hidden" name="action" value="lock">
-                                        <button type="submit" class="button button-sm button-danger px-4 mb-3">
+                                        <button type="submit" class="button button-sm button-danger px-4 mb-3"{% if key.Door.status == 'not_connected' %} disabled{% endif %}>
                                             <span class="material-symbols-outlined md-dark md-24 align-middle">lock</span>
                                             <span class="align-middle ps-1">Lock</span>
                                         </button>
                                     </form>
-                                {% elif key.Door.type == 'powered' %}
+                                {% endif %}
+                                {% if key.Door.type == 'open-close' %}
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="door" value="{{ key.Door.pk }}">
                                         <input type="hidden" name="action" value="open">
-                                        <button type="submit" class="button button-sm button-success px-4 mb-3">
+                                        <button type="submit" class="button button-sm button-success px-4 mb-3"{% if key.Door.status == 'not_connected' %} disabled{% endif %}>
                                             <span class="material-symbols-outlined md-dark md-24 align-middle">door_open</span>
                                             <span class="align-middle ps-1">Open</span>
                                         </button>
@@ -76,14 +89,14 @@
                                         {% csrf_token %}
                                         <input type="hidden" name="door" value="{{ key.Door.pk }}">
                                         <input type="hidden" name="action" value="close">
-                                        <button type="submit" class="button button-sm button-danger px-4 mb-3">
+                                        <button type="submit" class="button button-sm button-danger px-4 mb-3"{% if key.Door.status == 'not_connected' %} disabled{% endif %}>
                                             <span class="material-symbols-outlined md-dark md-24 align-middle">door_front</span>
                                             <span class="align-middle ps-1">Close</span>
                                         </button>
                                     </form>
                                     <form method="post">
                                         {% csrf_token %}
-                                        <input type="hidden" name="door" value="{{ key.Door.pk }}">
+                                        <input type="hidden" name="door" value="{{ key.Door.pk }}"{% if key.Door.status == 'not_connected' %} disabled{% endif %}>
                                         <input type="hidden" name="action" value="stop">
                                         <button type="submit" class="button button-sm button-warning px-4 mb-3">
                                             <span class="material-symbols-outlined md-dark md-24 align-middle">report</span>
