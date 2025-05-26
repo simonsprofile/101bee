@@ -1,11 +1,13 @@
+import json
+
+import requests
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import View
-from .models import Door, Key, EntryUserAccess
 
-import requests
+from .models import Door, Key, EntryUserAccess
 
 
 class Entry(LoginRequiredMixin, View):
@@ -21,22 +23,17 @@ class Entry(LoginRequiredMixin, View):
         doors = Door.objects.all()
 
         for door in doors:
-            # These are just going to have to be unique for now
+            # These doors are just going to have to be unique for now
             if door.name == 'Garage':
                 try:
-                    print(f'calling http://{door.ip}:{door.port}/hellooo')
                     r = requests.get(f'http://{door.ip}:{door.port}/hellooo', timeout=10)
-                    print('called')
                     if r.status_code == 200:
-                        door.status = 'connected'
+                        door.status = json.loads(r.content)['status']
                     else:
                         door.status = 'not_connected'
                 except requests.ConnectionError as e:
-                    print('connection error')
-                    print(e)
                     door.status = 'not_connected'
                 except requests.Timeout as e:
-                    print('timeout')
                     door.status = 'not_connected'
                 door.save()
         context = {
@@ -45,7 +42,6 @@ class Entry(LoginRequiredMixin, View):
                 d for d in doors if d not in [k.Door for k in keys]
             ]
         }
-
 
         return render(request, template_name, context)
 
